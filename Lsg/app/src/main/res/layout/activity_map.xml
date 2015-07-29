@@ -1,12 +1,48 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="match_parent" android:orientation="vertical"
     tools:context="com.sursun.houck.lsg.MapActivity">
 
-    <com.baidu.mapapi.map.MapView
-        android:id="@+id/bmapView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:clickable="true" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="60dip"
+            android:layout_marginTop="5dp"
+            android:orientation="horizontal" >
 
-</RelativeLayout>
+            <Button
+                android:id="@+id/searchNearByButton"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+
+                android:onClick="searchNearby"
+                android:layout_weight="2.5"
+                android:textColor="#0000FF"
+                android:text="检索周边" />
+
+            <Button
+                android:id="@+id/clearResultButton"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+
+                android:onClick="clearResult"
+                android:layout_weight="2.5"
+                android:textColor="#0000FF"
+                android:text="清除结果" />
+            <Button
+                android:id="@+id/switchButton"
+                android:layout_width="40dip"
+                android:layout_height="40dip"
+                android:layout_marginLeft="30dp"
+                android:onClick="switchClick"
+                android:layout_weight="1"
+                android:textColor="#0000FF"
+                android:text="列表" />
+        </LinearLayout>
+
+        <com.sursun.houck.lsg.CustomViewPager
+            android:id="@+id/viewpager"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            />
+
+</LinearLayout>
