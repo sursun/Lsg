@@ -1,7 +1,12 @@
 <resources>
-    <string name="app_name">Lsg</string>
+    <string name="app_name">LSG</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_test">TestActivity</string>
     <string name="title_activity_map">MapActivity</string>
+    <string name="title_activity_login">LoginActivity</string>
+
+    <string name="title_activity_welcome">WelcomeActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

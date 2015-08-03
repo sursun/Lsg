@@ -11,7 +11,7 @@ public class LsgApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        // ÔÚÊ¹ÓÃ SDK ¸÷×é¼äÖ®Ç°³õÊ¼»¯ context ĞÅÏ¢£¬´«Èë ApplicationContext
+        // åœ¨ä½¿ç”¨ SDK å„ç»„é—´ä¹‹å‰åˆå§‹åŒ– context ä¿¡æ¯ï¼Œä¼ å…¥ ApplicationContext
         SDKInitializer.initialize(this);
     }
 }

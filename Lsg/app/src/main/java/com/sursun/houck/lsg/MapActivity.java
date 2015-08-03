@@ -1,13 +1,17 @@
 package com.sursun.houck.lsg;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -54,12 +58,22 @@ import java.util.Random;
 
 
 public class MapActivity extends Activity implements RadarUploadInfoCallback,RadarSearchListener,BDLocationListener,BaiduMap.OnMarkerClickListener, BaiduMap.OnMapClickListener{
+
     //
-    //½çÃæ¿Õ¼äÏà¹Ø
-    private CustomViewPager mPager;//×Ô¶¨ÒåviewPager£¬Ä¿µÄÊÇ½ûÓÃÊÖÊÆ»¬¶¯
+    //ç¨‹åºè¿è¡Œç›¸å…³
+    private static boolean isExit = false;// å®šä¹‰ä¸€ä¸ªå˜é‡ï¼Œæ¥æ ‡è¯†æ˜¯å¦é€€å‡º
+    Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            isExit = false;
+        }
+    };
+
+    //
+    //ç•Œé¢ç©ºé—´ç›¸å…³
+    private CustomViewPager mPager;//è‡ªå®šä¹‰viewPagerï¼Œç›®çš„æ˜¯ç¦ç”¨æ‰‹åŠ¿æ»‘åŠ¨
     private List<View> listViews;
-    private String userId;
-    private String userDes;
     private Button switchBtn;
     private Button searchNearbyBtn;
     private Button clearRstBtn;
@@ -72,7 +86,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private Button mapNextBtn;
     private TextView mapCurPage;
 
-    /* ¶¨Î»Ïà¹Ø */
+    /* å®šä½ç›¸å…³ */
     private LocationClient mLocClient;
     private int pageIndex = 0;
     private int curPage = 0;
@@ -80,19 +94,19 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private LatLng pt = null;
     private boolean isFirstLoc = true;
 
-    //µØÍ¼Ïà¹Ø
+    //åœ°å›¾ç›¸å…³
     private MapView mMapView = null;
     private BaiduMap mBaiduMap = null;
-    private TextView popupText = null;//ÅİÅİview
+    private TextView popupText = null;//æ³¡æ³¡view
     private BitmapDescriptor ff3 = BitmapDescriptorFactory.fromResource(R.drawable.icon_marka);
 
-    //ÖÜ±ßÀ×´ïÏà¹Ø
+    //å‘¨è¾¹é›·è¾¾ç›¸å…³
     private RadarSearchManager mRadarManager = null;
     private RadarNearbyResult listResult = null;
     private ListView mResultListView = null;
     private RadarResultListAdapter mResultListAdapter = null;
-    private String userID = "";
-    private String userComment = "";
+    private String userId;
+    private String userDes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,23 +115,28 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
        // SDKInitializer.initialize(this);
         setContentView(R.layout.activity_map);
 
-        //³õÊ¼»¯UIºÍµØÍ¼
+        //è·å–ä¼ è¿‡æ¥çš„å‚æ•°
+        Intent intent = getIntent();
+        userId = intent.getStringExtra("username");
+        userDes = intent.getStringExtra("note");
+
+        //åˆå§‹åŒ–UIå’Œåœ°å›¾
         initUI();
 
-        //ÖÜ±ßÀ×´ïÉèÖÃ¼àÌı
+        //å‘¨è¾¹é›·è¾¾è®¾ç½®ç›‘å¬
         mRadarManager = RadarSearchManager.getInstance();
         mRadarManager.addNearbyInfoListener(this);
 
-        //ÖÜ±ßÀ×´ïÉèÖÃÓÃ»§£¬idÎª¿ÕÄ¬ÈÏÊÇÉè±¸±êÊ¶
-        mRadarManager.setUserID(userID);
+        //å‘¨è¾¹é›·è¾¾è®¾ç½®ç”¨æˆ·ï¼Œidä¸ºç©ºé»˜è®¤æ˜¯è®¾å¤‡æ ‡è¯†
+        mRadarManager.setUserID(userId);
         mRadarManager.startUploadAuto(this, 5000);
 
-        // ¶¨Î»³õÊ¼»¯
+        // å®šä½åˆå§‹åŒ–
         mLocClient = new LocationClient(getApplicationContext());
         mLocClient.registerLocationListener(this);
         LocationClientOption option = new LocationClientOption();
-        option.setOpenGps(true);// ´ò¿ªgps
-        option.setCoorType("bd09ll"); // ÉèÖÃ×ø±êÀàĞÍ
+        option.setOpenGps(true);// æ‰“å¼€gps
+        option.setCoorType("bd09ll"); // è®¾ç½®åæ ‡ç±»å‹
         option.setScanSpan(1000);
         mLocClient.setLocOption(option);
         mLocClient.start();
@@ -133,7 +152,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
         View layout = mInflater.inflate(R.layout.activity_radarlist, null);
         View mapLayout = mInflater.inflate(R.layout.activity_radarmap, null);
-        //µØÍ¼³õÊ¼»¯
+        //åœ°å›¾åˆå§‹åŒ–
         mMapView = (MapView) mapLayout.findViewById(R.id.map);
         mBaiduMap = mMapView.getMap();
 
@@ -151,7 +170,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         Random r=new Random();
         int n = r.nextInt(100)+1;
         userId = "houck"+n;
-        userDes= "ÃèÊö" + n;
+        userDes= "æè¿°" + n;
 
         switchBtn = (Button)findViewById(R.id.switchButton);
         searchNearbyBtn = (Button)findViewById(R.id.searchNearByButton);
@@ -179,7 +198,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     /**
-     * ²éÕÒÖÜ±ßµÄÈË
+     * æŸ¥æ‰¾å‘¨è¾¹çš„äºº
      * @param v
      */
     public void searchNearby(View v) {
@@ -188,7 +207,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     private void searchNearby() {
         if (pt == null) {
-            Toast.makeText(MapActivity.this, "Î´»ñÈ¡µ½Î»ÖÃ", Toast.LENGTH_LONG)
+            Toast.makeText(MapActivity.this, "æœªè·å–åˆ°ä½ç½®", Toast.LENGTH_LONG)
                     .show();
             return;
         }
@@ -214,23 +233,23 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         mBaiduMap.hideInfoWindow();
     }
 
-    //viewPagerÇĞ»»
+    //viewPageråˆ‡æ¢
     public void switchClick(View v) {
         if (index == 0) {
-            //ÇĞ»»ÎªÁĞ±í
+            //åˆ‡æ¢ä¸ºåˆ—è¡¨
             index = 1;
-            switchBtn.setText("µØÍ¼");
+            switchBtn.setText("åœ°å›¾");
         } else {
-            //ÇĞ»»ÎªµØÍ¼
+            //åˆ‡æ¢ä¸ºåœ°å›¾
             index = 0;
-            switchBtn.setText("ÁĞ±í");
+            switchBtn.setText("åˆ—è¡¨");
         }
         mPager.setCurrentItem(index);
 
     }
 
     /**
-     * ¸üĞÂ½á¹ûÁĞ±í
+     * æ›´æ–°ç»“æœåˆ—è¡¨
      * @param res
      */
     public void parseResultToList(RadarNearbyResult res) {
@@ -257,7 +276,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     /**
-     * ¸üĞÂ½á¹ûµØÍ¼
+     * æ›´æ–°ç»“æœåœ°å›¾
      * @param res
      */
     public void parseResultToMap(RadarNearbyResult res) {
@@ -267,7 +286,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 MarkerOptions option = new MarkerOptions().icon(ff3).position(res.infoList.get(i).pt);
                 Bundle des = new Bundle();
                 if (res.infoList.get(i).comments == null || res.infoList.get(i).comments.equals("")) {
-                    des.putString("des", "Ã»ÓĞ±¸×¢");
+                    des.putString("des", "æ²¡æœ‰å¤‡æ³¨");
                 } else {
                     des.putString("des", res.infoList.get(i).comments);
                 }
@@ -290,13 +309,13 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     /**
-     * ÊµÏÖÉÏ´«callback£¬×Ô¶¯ÉÏ´«
+     * å®ç°ä¸Šä¼ callbackï¼Œè‡ªåŠ¨ä¸Šä¼ 
      */
     @Override
     public RadarUploadInfo OnUploadInfoCallback() {
 
         RadarUploadInfo info = new RadarUploadInfo();
-        info.comments = userComment;
+        info.comments = this.userId;//+ this.userDes;
         info.pt = pt;
         Log.e("MapActivity", "OnUploadInfoCallback");
         return info;
@@ -311,16 +330,16 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
             Log.w("MapActivity", "search nearby success");
 
-            //»ñÈ¡³É¹¦
+            //è·å–æˆåŠŸ
             listResult = result;
             curPage = result.pageIndex;
             totalPage = result.pageNum;
-            //´¦ÀíÊı¾İ
+            //å¤„ç†æ•°æ®
             parseResultToList(listResult);
             parseResultToMap(listResult);
             clearRstBtn.setEnabled(true);
         } else {
-            //»ñÈ¡Ê§°Ü
+            //è·å–å¤±è´¥
             curPage = 0;
             totalPage = 0;
             Log.w("MapActivity", "search nearby failed");
@@ -334,10 +353,10 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         Log.w("MapActivity", "onGetUploadState");
 
         if (error == RadarSearchError.RADAR_NO_ERROR) {
-            //ÉÏ´«³É¹¦
+            //ä¸Šä¼ æˆåŠŸ
             Log.w("MapActivity", "Upload Success");
         } else {
-            //ÉÏ´«Ê§°Ü
+            //ä¸Šä¼ å¤±è´¥
             Log.w("MapActivity", "Upload Failed");
         }
     }
@@ -346,22 +365,22 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     public void onGetClearInfoState(RadarSearchError error) {
         // TODO Auto-generated method stub
         if (error == RadarSearchError.RADAR_NO_ERROR) {
-            //Çå³ı³É¹¦
-            Toast.makeText(MapActivity.this, "Çå³ıÎ»ÖÃ³É¹¦", Toast.LENGTH_LONG)
+            //æ¸…é™¤æˆåŠŸ
+            Toast.makeText(MapActivity.this, "æ¸…é™¤ä½ç½®æˆåŠŸ", Toast.LENGTH_LONG)
                     .show();
         } else {
-            //Çå³ıÊ§°Ü
-            Toast.makeText(MapActivity.this, "Çå³ıÎ»ÖÃÊ§°Ü", Toast.LENGTH_LONG)
+            //æ¸…é™¤å¤±è´¥
+            Toast.makeText(MapActivity.this, "æ¸…é™¤ä½ç½®å¤±è´¥", Toast.LENGTH_LONG)
                     .show();
         }
     }
 
     /**
-     * ¶¨Î»SDK¼àÌıº¯Êı
+     * å®šä½SDKç›‘å¬å‡½æ•°
      */
     @Override
     public void onReceiveLocation(BDLocation location) {
-        // map view Ïú»Ùºó²»ÔÚ´¦ÀíĞÂ½ÓÊÕµÄÎ»ÖÃ
+        // map view é”€æ¯åä¸åœ¨å¤„ç†æ–°æ¥æ”¶çš„ä½ç½®
         Log.w("MapActivity","onReceiveLocation");
         if (location == null || mMapView == null || mBaiduMap == null) {
 
@@ -373,7 +392,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
         MyLocationData locData = new MyLocationData.Builder()
                 .accuracy(location.getRadius())
-                        // ´Ë´¦ÉèÖÃ¿ª·¢Õß»ñÈ¡µ½µÄ·½ÏòĞÅÏ¢£¬Ë³Ê±Õë0-360
+                        // æ­¤å¤„è®¾ç½®å¼€å‘è€…è·å–åˆ°çš„æ–¹å‘ä¿¡æ¯ï¼Œé¡ºæ—¶é’ˆ0-360
                 .direction(100).latitude(location.getLatitude())
                 .longitude(location.getLongitude()).build();
 
@@ -391,9 +410,9 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                         .zoom(18)
                         .build();
 
-                //¶¨ÒåMapStatusUpdate¶ÔÏó£¬ÒÔ±ãÃèÊöµØÍ¼×´Ì¬½«Òª·¢ÉúµÄ±ä»¯
+                //å®šä¹‰MapStatusUpdateå¯¹è±¡ï¼Œä»¥ä¾¿æè¿°åœ°å›¾çŠ¶æ€å°†è¦å‘ç”Ÿçš„å˜åŒ–
                 MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mapStatus);
-                //¸Ä±äµØÍ¼×´Ì¬
+                //æ”¹å˜åœ°å›¾çŠ¶æ€
                 mBaiduMap.setMapStatus(mapStatusUpdate);
 
                 //searchNearby();
@@ -442,13 +461,13 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         @Override
         public void onPageSelected(int arg0) {
             if (arg0 == 0) {
-                //ÇĞ»»ÎªÁĞ±í
+                //åˆ‡æ¢ä¸ºåˆ—è¡¨
                 index = 0;
-                switchBtn.setText("µØÍ¼");
+                switchBtn.setText("åœ°å›¾");
             } else {
-                //ÇĞ»»ÎªµØÍ¼
+                //åˆ‡æ¢ä¸ºåœ°å›¾
                 index = 1;
-                switchBtn.setText("ÁĞ±í");
+                switchBtn.setText("åˆ—è¡¨");
             }
         }
 
@@ -462,7 +481,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     /**
-     * ½á¹ûÁĞ±ílistviewÊÊÅäÆ÷
+     * ç»“æœåˆ—è¡¨listviewé€‚é…å™¨
      *
      */
     private class RadarResultListAdapter extends BaseAdapter {
@@ -485,9 +504,9 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 title.setText("");
             } else {
                 if (list.get(index).comments == null || list.get(index).comments.equals("")) {
-                    desc.setText(String.valueOf(list.get(index).distance) + "Ã×"+ "_Ã»ÓĞ±¸×¢");
+                    desc.setText(String.valueOf(list.get(index).distance) + "ç±³"+ "_æ²¡æœ‰å¤‡æ³¨");
                 } else {
-                    desc.setText(String.valueOf(list.get(index).distance) + "Ã×"+ "_"+list.get(index).comments);
+                    desc.setText(String.valueOf(list.get(index).distance) + "ç±³"+ "_"+list.get(index).comments);
                 }
 
                 title.setText(list.get(index).userID);
@@ -524,6 +543,27 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            exit();
+            return false;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void exit() {
+        if (!isExit) {
+            isExit = true;
+            Toast.makeText(getApplicationContext(), "å†æŒ‰ä¸€æ¬¡é€€å‡ºç¨‹åº",
+                    Toast.LENGTH_SHORT).show();
+            // åˆ©ç”¨handlerå»¶è¿Ÿå‘é€æ›´æ”¹çŠ¶æ€ä¿¡æ¯
+            mHandler.sendEmptyMessageDelayed(0, 2000);
+        } else {
+            finish();
+            System.exit(0);
+        }
+    }
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_map, menu);
@@ -547,25 +587,26 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     @Override
     protected void onDestroy() {
-        // ÍË³öÊ±Ïú»Ù¶¨Î»
+        // é€€å‡ºæ—¶é”€æ¯å®šä½
         mLocClient.stop();
 
-        //ÊÍ·ÅÖÜ±ßÀ×´ïÏà¹Ø
+        //é‡Šæ”¾å‘¨è¾¹é›·è¾¾ç›¸å…³
         mRadarManager.removeNearbyInfoListener(this);
         mRadarManager.clearUserInfo();
         mRadarManager.destroy();
 
-        //ÊÍ·ÅµØÍ¼
+        //é‡Šæ”¾åœ°å›¾
         ff3.recycle();
         mMapView.onDestroy();
         mBaiduMap = null;
 
+        Log.w("MapActivity","onDestroy");
         super.onDestroy();
     }
     @Override
     protected void onResume() {
 
-        //ÔÚactivityÖ´ĞĞonResumeÊ±Ö´ĞĞmMapView. onResume ()£¬ÊµÏÖµØÍ¼ÉúÃüÖÜÆÚ¹ÜÀí
+        //åœ¨activityæ‰§è¡ŒonResumeæ—¶æ‰§è¡ŒmMapView. onResume ()ï¼Œå®ç°åœ°å›¾ç”Ÿå‘½å‘¨æœŸç®¡ç†
        // mMapView.onResume();
 
         super.onResume();
@@ -573,7 +614,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     protected void onPause() {
 
-        //ÔÚactivityÖ´ĞĞonPauseÊ±Ö´ĞĞmMapView. onPause ()£¬ÊµÏÖµØÍ¼ÉúÃüÖÜÆÚ¹ÜÀí
+        //åœ¨activityæ‰§è¡ŒonPauseæ—¶æ‰§è¡ŒmMapView. onPause ()ï¼Œå®ç°åœ°å›¾ç”Ÿå‘½å‘¨æœŸç®¡ç†
        // mMapView.onPause();
 
         super.onPause();
