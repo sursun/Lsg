@@ -31,7 +31,9 @@ public class LoginActivity extends ActionBarActivity {
         mUser = LocalConfig.GetUser(LoginActivity.this);
 
         if (mUser != null){
-            attemptToLogin();
+            //attemptToLogin();
+            cMobile.setText(mUser.Name);
+            cPassword.setText(mUser.Note);
         }
     }
 
@@ -60,12 +62,12 @@ public class LoginActivity extends ActionBarActivity {
         if(mUser == null)
             return bRet;
 
+        LocalConfig.SaveUser(LoginActivity.this,mUser);
+
         Intent intent = new Intent(LoginActivity.this, MapActivity.class);
 
         intent.putExtra("username",mUser.Name);
-        intent.putExtra("note",mUser.Note);
-
-        LocalConfig.SaveUser(LoginActivity.this,mUser);
+        intent.putExtra("note", mUser.Note);
 
         this.startActivity(intent);
 

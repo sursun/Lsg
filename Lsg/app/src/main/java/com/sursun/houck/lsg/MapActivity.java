@@ -53,6 +53,7 @@ import com.baidu.mapapi.radar.RadarUploadInfo;
 import com.baidu.mapapi.radar.RadarUploadInfoCallback;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
@@ -62,7 +63,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     //
     //程序运行相关
     private static boolean isExit = false;// 定义一个变量，来标识是否退出
-    Handler mHandler = new Handler() {
+    Handler handlerExit = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -70,15 +71,18 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         }
     };
 
+    Handler handlerSearchNearby = null;
+    Runnable runnableSearchNearby = null;
+
     //
     //界面空间相关
     private CustomViewPager mPager;//自定义viewPager，目的是禁用手势滑动
     private List<View> listViews;
     private Button switchBtn;
-    private Button searchNearbyBtn;
-    private Button clearRstBtn;
 
-    private int index = 0;
+    private int View_Map = 0;
+    private int View_List = 1;
+    private int viewIndex = View_Map;
     private Button listPreBtn;
     private Button listNextBtn;
     private TextView listCurPage;
@@ -105,6 +109,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private RadarNearbyResult listResult = null;
     private ListView mResultListView = null;
     private RadarResultListAdapter mResultListAdapter = null;
+    private boolean bUploadRadarInfoStopped = true;//指示自动上传用雷达信息，是否停止
+    private int radarRadius = 1000;
     private String userId;
     private String userDes;
 
@@ -128,8 +134,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         mRadarManager.addNearbyInfoListener(this);
 
         //周边雷达设置用户，id为空默认是设备标识
-        mRadarManager.setUserID(userId);
-        mRadarManager.startUploadAuto(this, 5000);
+        startUpLoadRadarInfo();
 
         // 定位初始化
         mLocClient = new LocationClient(getApplicationContext());
@@ -140,6 +145,17 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         option.setScanSpan(1000);
         mLocClient.setLocOption(option);
         mLocClient.start();
+
+        //定时获取周边信息
+        handlerSearchNearby = new Handler();
+        runnableSearchNearby = new Runnable() {
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                searchNearby();
+                handlerSearchNearby.postDelayed(this, 30 * 1000);
+            }
+        };
     }
 
     private void initUI() {
@@ -164,24 +180,17 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         listViews.add(layout);
 
         mPager.setAdapter(new MyPagerAdapter(listViews));
-        mPager.setCurrentItem(0);
+        mPager.setCurrentItem(viewIndex);
         mPager.setOnPageChangeListener(new MyOnPageChangeListener());
 
-        Random r=new Random();
-        int n = r.nextInt(100)+1;
-        userId = "houck"+n;
-        userDes= "描述" + n;
-
         switchBtn = (Button)findViewById(R.id.switchButton);
-        searchNearbyBtn = (Button)findViewById(R.id.searchNearByButton);
-        clearRstBtn = (Button)findViewById(R.id.clearResultButton);
         listPreBtn = (Button)layout.findViewById(R.id.radarlistpre);
         listNextBtn = (Button)layout.findViewById(R.id.radarlistnext);
         listCurPage = (TextView)layout.findViewById(R.id.radarListPage);
         mapPreBtn = (Button)mapLayout.findViewById(R.id.radarmappre);
         mapNextBtn = (Button)mapLayout.findViewById(R.id.radarmapnext);
         mapCurPage = (TextView)mapLayout.findViewById(R.id.radarMapPage);
-        clearRstBtn.setEnabled(false);
+
 
         listPreBtn.setVisibility(View.INVISIBLE);
         listNextBtn.setVisibility(View.INVISIBLE);
@@ -197,12 +206,18 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         mResultListAdapter.notifyDataSetChanged();
     }
 
-    /**
-     * 查找周边的人
-     * @param v
-     */
-    public void searchNearby(View v) {
-        searchNearby();
+    private void startUpLoadRadarInfo(){
+
+        mRadarManager.setUserID(userId);
+
+        this.bUploadRadarInfoStopped = false;
+
+        mRadarManager.startUploadAuto(this, 5000);
+    }
+
+    private void stopUpLoadRadarInfo(){
+        this.bUploadRadarInfoStopped = true;
+        mRadarManager.stopUploadAuto();
     }
 
     private void searchNearby() {
@@ -221,7 +236,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         curPage = 0;
         totalPage = 0;
 
-        RadarNearbySearchOption option = new RadarNearbySearchOption().centerPt(pt).pageNum(pageIndex).radius(2000);
+        RadarNearbySearchOption option = new RadarNearbySearchOption().centerPt(pt).pageNum(pageIndex).radius(radarRadius);
         mRadarManager.nearbyInfoRequest(option);
 
         listPreBtn.setVisibility(View.INVISIBLE);
@@ -233,18 +248,42 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         mBaiduMap.hideInfoWindow();
     }
 
-    //viewPager切换
-    public void switchClick(View v) {
-        if (index == 0) {
-            //切换为列表
-            index = 1;
-            switchBtn.setText("地图");
-        } else {
-            //切换为地图
-            index = 0;
-            switchBtn.setText("列表");
+    /**
+     * 检验位置信息是否过期
+     * @param res
+     */
+    public void checkResultList(RadarNearbyResult res) {
+
+        //先停止本地自动上传
+        stopUpLoadRadarInfo();
+
+        Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+
+        if (res != null && res.infoList != null && res.infoList.size() > 0) {
+            for (int i = res.infoList.size() -1;i>=0 ;i--) {
+
+                Date date = res.infoList.get(i).timeStamp;
+                long timeSpan = (curDate.getTime() - date.getTime() )/(1000 * 60);
+
+                if (timeSpan > 30)
+                {
+                    Log.w("MapActivity","时间超过30分钟" + date.toString());
+
+                    mRadarManager.setUserID(res.infoList.get(i).userID);
+                    mRadarManager.clearUserInfo();
+
+                    res.infoList.remove(i);
+                }
+
+            }
         }
-        mPager.setCurrentItem(index);
+
+        if (res.infoList.size() < 1 && this.radarRadius < 10000){
+            this.radarRadius += 1000;
+        }
+
+        //开启本地自动上传
+        startUpLoadRadarInfo();
 
     }
 
@@ -314,6 +353,11 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     public RadarUploadInfo OnUploadInfoCallback() {
 
+        if(bUploadRadarInfoStopped) {
+            Log.e("MapActivity", "OnUploadInfoCallback  UploadRadarInfoStopped");
+            return null;
+        }
+
         RadarUploadInfo info = new RadarUploadInfo();
         info.comments = this.userId;//+ this.userDes;
         info.pt = pt;
@@ -334,10 +378,11 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             listResult = result;
             curPage = result.pageIndex;
             totalPage = result.pageNum;
+
             //处理数据
+            checkResultList(listResult);
             parseResultToList(listResult);
             parseResultToMap(listResult);
-            clearRstBtn.setEnabled(true);
         } else {
             //获取失败
             curPage = 0;
@@ -366,12 +411,14 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         // TODO Auto-generated method stub
         if (error == RadarSearchError.RADAR_NO_ERROR) {
             //清除成功
-            Toast.makeText(MapActivity.this, "清除位置成功", Toast.LENGTH_LONG)
-                    .show();
+            Log.w("MapActivity","清除位置成功");
+//            Toast.makeText(MapActivity.this, "清除位置成功", Toast.LENGTH_LONG)
+//                    .show();
         } else {
             //清除失败
-            Toast.makeText(MapActivity.this, "清除位置失败", Toast.LENGTH_LONG)
-                    .show();
+            Log.w("MapActivity","清除位置失败");
+//            Toast.makeText(MapActivity.this, "清除位置失败", Toast.LENGTH_LONG)
+//                    .show();
         }
     }
 
@@ -381,7 +428,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     public void onReceiveLocation(BDLocation location) {
         // map view 销毁后不在处理新接收的位置
-        Log.w("MapActivity","onReceiveLocation");
+        Log.w("MapActivity", "onReceiveLocation");
         if (location == null || mMapView == null || mBaiduMap == null) {
 
             Log.w("MapActivity", "location == null || mMapView == null || mBaiduMap == null");
@@ -415,7 +462,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 //改变地图状态
                 mBaiduMap.setMapStatus(mapStatusUpdate);
 
-                //searchNearby();
+                handlerSearchNearby.postDelayed(runnableSearchNearby, 2000);
             }
 
 
@@ -456,18 +503,33 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         }
     }
 
+    //viewPager切换
+    public void switchClick(View v) {
+        if (viewIndex == View_Map) {
+            //切换为列表
+            viewIndex = View_List;
+            //switchBtn.setText("地图");
+        } else {
+            //切换为地图
+            viewIndex = View_Map;
+            //switchBtn.setText("列表");
+        }
+        mPager.setCurrentItem(viewIndex);
+
+    }
+
     public class MyOnPageChangeListener implements ViewPager.OnPageChangeListener {
 
         @Override
         public void onPageSelected(int arg0) {
-            if (arg0 == 0) {
-                //切换为列表
-                index = 0;
-                switchBtn.setText("地图");
-            } else {
+            if (arg0 == View_Map) {
                 //切换为地图
-                index = 1;
+                viewIndex = View_Map;
                 switchBtn.setText("列表");
+            } else {
+                //切换为列表
+                viewIndex = View_List;
+                switchBtn.setText("地图");
             }
         }
 
@@ -504,9 +566,9 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 title.setText("");
             } else {
                 if (list.get(index).comments == null || list.get(index).comments.equals("")) {
-                    desc.setText(String.valueOf(list.get(index).distance) + "米"+ "_没有备注");
+                    desc.setText(String.valueOf(list.get(index).distance) + "米"+ "_没有备注"+ list.get(index).timeStamp.toString());
                 } else {
-                    desc.setText(String.valueOf(list.get(index).distance) + "米"+ "_"+list.get(index).comments);
+                    desc.setText(String.valueOf(list.get(index).distance) + "米"+ "_"+list.get(index).comments+ list.get(index).timeStamp.toString());
                 }
 
                 title.setText(list.get(index).userID);
@@ -542,6 +604,12 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         }
     }
 
+    public void onMyInfoClick(View v)
+    {
+        Intent intent = new Intent(MapActivity.this, SettingsActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -557,7 +625,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             Toast.makeText(getApplicationContext(), "再按一次退出程序",
                     Toast.LENGTH_SHORT).show();
             // 利用handler延迟发送更改状态信息
-            mHandler.sendEmptyMessageDelayed(0, 2000);
+            handlerExit.sendEmptyMessageDelayed(0, 2000);
         } else {
             finish();
             System.exit(0);
@@ -587,6 +655,10 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     @Override
     protected void onDestroy() {
+
+        //停止定时刷新周边
+        handlerSearchNearby.removeCallbacks(runnableSearchNearby);
+
         // 退出时销毁定位
         mLocClient.stop();
 

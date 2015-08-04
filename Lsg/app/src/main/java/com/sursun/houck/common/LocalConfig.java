@@ -1,6 +1,7 @@
 package com.sursun.houck.common;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.sursun.houck.domain.User;
 
@@ -21,27 +22,44 @@ public class LocalConfig {
     private static String fileName = "lcocalinfo";
     public static User GetUser(Context packageContext ) {
 
+        Log.w("LocalConfig","GetUser---begin");
+
         User user = null;
         try {
             String strContent = readFile( packageContext,fileName);
 
+            Log.w("LocalConfig","strContent=" + strContent);
+
             if(strContent.length() > 3)
             {
-                String[] lt = strContent.split("|");
+                String[] lt = strContent.split("\\|");
+
                 user = new User();
                 user.Name = lt[0];
                 user.Note = lt[1];
             }
 
+            if(user == null){
+                Log.w("LocalConfig","User=null");
+            }else{
+                Log.w("LocalConfig","User_Name=" + user.Name + "User_Note" + user.Note);
+            }
+
+
+
         } catch (IOException e) {
             e.printStackTrace();
+
+            Log.w("LocalConfig", e.getMessage());
         }
 
+        Log.w("LocalConfig","GetUser---end");
         return user;
     }
 
     public static boolean SaveUser(Context packageContext,User user) {
 
+        Log.w("LocalConfig","SaveUser---begin");
          boolean bRet = false;
         try {
             String strContent = "";
@@ -50,12 +68,17 @@ public class LocalConfig {
             strContent += "|";
             strContent += user.Note;
 
+            Log.w("LocalConfig","strContent=" + strContent);
+
             writeFile(packageContext,fileName,strContent);
 
             bRet = true;
         } catch (IOException e) {
             e.printStackTrace();
+            Log.w("LocalConfig", e.getMessage());
         }
+
+        Log.w("LocalConfig","SaveUser---end");
 
         return bRet;
     }
