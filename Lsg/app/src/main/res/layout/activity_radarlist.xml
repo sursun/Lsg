@@ -46,7 +46,7 @@
     <ListView
         android:id="@+id/radar_list"
         android:layout_width="fill_parent"
-        android:divider="#0000FF"
+        android:divider="#A0A0A0"
         android:dividerHeight="1px"
         android:background="#FFFFFF"
         android:cacheColorHint="#FFFFFF"

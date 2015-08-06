@@ -20,6 +20,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +43,7 @@ import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
+import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.radar.RadarNearbyInfo;
 import com.baidu.mapapi.radar.RadarNearbyResult;
@@ -51,6 +53,13 @@ import com.baidu.mapapi.radar.RadarSearchListener;
 import com.baidu.mapapi.radar.RadarSearchManager;
 import com.baidu.mapapi.radar.RadarUploadInfo;
 import com.baidu.mapapi.radar.RadarUploadInfoCallback;
+import com.baidu.mapapi.search.core.SearchResult;
+import com.baidu.mapapi.search.geocode.GeoCodeResult;
+import com.baidu.mapapi.search.geocode.GeoCoder;
+import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
+import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
+import com.baidu.mapapi.utils.DistanceUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,7 +67,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class MapActivity extends Activity implements RadarUploadInfoCallback,RadarSearchListener,BDLocationListener,BaiduMap.OnMarkerClickListener, BaiduMap.OnMapClickListener{
+public class MapActivity extends Activity implements RadarUploadInfoCallback,RadarSearchListener,BaiduMap.OnMapStatusChangeListener,BDLocationListener,BaiduMap.OnMarkerClickListener, BaiduMap.OnMapClickListener{
 
     //
     //程序运行相关
@@ -79,6 +88,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private CustomViewPager mPager;//自定义viewPager，目的是禁用手势滑动
     private List<View> listViews;
     private Button switchBtn;
+    private ImageButton btnMapCenter;
+    private ImageButton btnLocation;
 
     private int View_Map = 0;
     private int View_List = 1;
@@ -90,19 +101,24 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private Button mapNextBtn;
     private TextView mapCurPage;
 
+    private boolean isInfoWindowShow = false;
+
     /* 定位相关 */
     private LocationClient mLocClient;
     private int pageIndex = 0;
     private int curPage = 0;
     private int totalPage = 0;
-    private LatLng pt = null;
+    private LatLng ptUserLoc = null;
     private boolean isFirstLoc = true;
+    private LatLng ptMapCenter = null;
+    GeoCoder mGeoSearch = GeoCoder.newInstance();
 
     //地图相关
     private MapView mMapView = null;
     private BaiduMap mBaiduMap = null;
-    private TextView popupText = null;//泡泡view
-    private BitmapDescriptor ff3 = BitmapDescriptorFactory.fromResource(R.drawable.icon_marka);
+    private BitmapDescriptor ff3 = BitmapDescriptorFactory.fromResource(R.drawable.icon_marker);
+    private BitmapDescriptor iconMapCenter = BitmapDescriptorFactory.fromResource(R.drawable.icon_map_center);
+    private Overlay markerCenter = null;
 
     //周边雷达相关
     private RadarSearchManager mRadarManager = null;
@@ -125,6 +141,9 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         Intent intent = getIntent();
         userId = intent.getStringExtra("username");
         userDes = intent.getStringExtra("note");
+
+        //获取地理位置编码监听
+        this.mGeoSearch.setOnGetGeoCodeResultListener(this.getGeoCoderResultListener);
 
         //初始化UI和地图
         initUI();
@@ -170,10 +189,12 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         View mapLayout = mInflater.inflate(R.layout.activity_radarmap, null);
         //地图初始化
         mMapView = (MapView) mapLayout.findViewById(R.id.map);
+        mMapView.showScaleControl(false);
         mBaiduMap = mMapView.getMap();
 
         mBaiduMap.setOnMarkerClickListener(this);
         mBaiduMap.setOnMapClickListener(this);
+        mBaiduMap.setOnMapStatusChangeListener(this);
         mBaiduMap.setMyLocationEnabled(true);
 
         listViews.add(mapLayout);
@@ -191,6 +212,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         mapNextBtn = (Button)mapLayout.findViewById(R.id.radarmapnext);
         mapCurPage = (TextView)mapLayout.findViewById(R.id.radarMapPage);
 
+        this.btnMapCenter = (ImageButton)findViewById(R.id.imageButtonMapCenter);
+        this.btnLocation = (ImageButton)findViewById(R.id.imageButtonLocation);
 
         listPreBtn.setVisibility(View.INVISIBLE);
         listNextBtn.setVisibility(View.INVISIBLE);
@@ -221,7 +244,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     private void searchNearby() {
-        if (pt == null) {
+        if (ptMapCenter == null) {
             Toast.makeText(MapActivity.this, "未获取到位置", Toast.LENGTH_LONG)
                     .show();
             return;
@@ -232,11 +255,17 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     private void searchRequest(int index) {
 
-        Log.w("MapActivity","searchRequest----" + index);
+        //如果有信息窗口显示，不进行刷新界面
+        if(this.isInfoWindowShow)
+            return;
+
+        Log.w("MapActivity","searchRequest----index=" + index);
         curPage = 0;
         totalPage = 0;
 
-        RadarNearbySearchOption option = new RadarNearbySearchOption().centerPt(pt).pageNum(pageIndex).radius(radarRadius);
+        Log.w("MapActivity", "searchRequest----radarRadius=" + radarRadius);
+
+        RadarNearbySearchOption option = new RadarNearbySearchOption().centerPt(ptMapCenter).pageNum(pageIndex).radius(radarRadius);
         mRadarManager.nearbyInfoRequest(option);
 
         listPreBtn.setVisibility(View.INVISIBLE);
@@ -245,7 +274,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         mapNextBtn.setVisibility(View.INVISIBLE);
         listCurPage.setText("0/0");
         mapCurPage.setText("0/0");
-        mBaiduMap.hideInfoWindow();
+
     }
 
     /**
@@ -253,6 +282,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
      * @param res
      */
     public void checkResultList(RadarNearbyResult res) {
+
+        Log.w("MapActivity","checkResultList");
 
         //先停止本地自动上传
         stopUpLoadRadarInfo();
@@ -263,11 +294,11 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             for (int i = res.infoList.size() -1;i>=0 ;i--) {
 
                 Date date = res.infoList.get(i).timeStamp;
-                long timeSpan = (curDate.getTime() - date.getTime() )/(1000 * 60);
+                long timeSpan = (curDate.getTime() - date.getTime() )/(1000 * 60 * 60);
 
-                if (timeSpan > 30)
+                if (timeSpan > 48)
                 {
-                    Log.w("MapActivity","时间超过30分钟" + date.toString());
+                    Log.w("MapActivity","时间超过48小时" + date.toString());
 
                     mRadarManager.setUserID(res.infoList.get(i).userID);
                     mRadarManager.clearUserInfo();
@@ -276,10 +307,6 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 }
 
             }
-        }
-
-        if (res.infoList.size() < 1 && this.radarRadius < 10000){
-            this.radarRadius += 1000;
         }
 
         //开启本地自动上传
@@ -320,6 +347,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
      */
     public void parseResultToMap(RadarNearbyResult res) {
         mBaiduMap.clear();
+
         if (res != null && res.infoList != null && res.infoList.size() > 0) {
             for (int i = 0;i< res.infoList.size();i++) {
                 MarkerOptions option = new MarkerOptions().icon(ff3).position(res.infoList.get(i).pt);
@@ -360,7 +388,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
         RadarUploadInfo info = new RadarUploadInfo();
         info.comments = this.userId;//+ this.userDes;
-        info.pt = pt;
+        info.pt = ptUserLoc;
         Log.e("MapActivity", "OnUploadInfoCallback");
         return info;
     }
@@ -387,6 +415,10 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             //获取失败
             curPage = 0;
             totalPage = 0;
+
+            parseResultToList(null);
+            parseResultToMap(null);
+
             Log.w("MapActivity", "search nearby failed");
         }
 
@@ -395,15 +427,15 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     public void onGetUploadState(RadarSearchError error) {
 
-        Log.w("MapActivity", "onGetUploadState");
-
-        if (error == RadarSearchError.RADAR_NO_ERROR) {
-            //上传成功
-            Log.w("MapActivity", "Upload Success");
-        } else {
-            //上传失败
-            Log.w("MapActivity", "Upload Failed");
-        }
+//        Log.w("MapActivity", "onGetUploadState");
+//
+//        if (error == RadarSearchError.RADAR_NO_ERROR) {
+//            //上传成功
+//            Log.w("MapActivity", "Upload Success");
+//        } else {
+//            //上传失败
+//            Log.w("MapActivity", "Upload Failed");
+//        }
     }
 
     @Override
@@ -435,7 +467,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             return;
         }
 
-        pt = new LatLng(location.getLatitude(), location.getLongitude());
+        ptUserLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
         MyLocationData locData = new MyLocationData.Builder()
                 .accuracy(location.getRadius())
@@ -452,19 +484,13 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 Log.w("MapActivity", "First Location update map");
 
                 isFirstLoc = false;
-                MapStatus mapStatus = new MapStatus.Builder()
-                        .target(pt)
-                        .zoom(18)
-                        .build();
 
-                //定义MapStatusUpdate对象，以便描述地图状态将要发生的变化
-                MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mapStatus);
-                //改变地图状态
-                mBaiduMap.setMapStatus(mapStatusUpdate);
+                this.ptMapCenter = ptUserLoc;
+
+                mapToLocation(18);
 
                 handlerSearchNearby.postDelayed(runnableSearchNearby, 2000);
             }
-
 
         } else {
             Log.w("MapActivity", "mBaiduMap == null");
@@ -475,7 +501,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     public void onMapClick(LatLng point) {
         // TODO Auto-generated method stub
-        mBaiduMap.hideInfoWindow();
+        hideInfoWindow();
     }
 
     @Override
@@ -488,19 +514,27 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     public boolean onMarkerClick(Marker marker) {
         // TODO Auto-generated method stub
-        mBaiduMap.hideInfoWindow();
+        hideInfoWindow();
         if (marker != null) {
-            popupText = new TextView(MapActivity.this);
+            TextView popupText = new TextView(MapActivity.this);
             popupText.setBackgroundResource(R.drawable.popup);
             popupText.setTextColor(0xFF000000);
             popupText.setText(marker.getExtraInfo().getString("des"));
             mBaiduMap.showInfoWindow(new InfoWindow(popupText, marker.getPosition(), -47));
-            MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(marker.getPosition());
-            mBaiduMap.setMapStatus(update);
+            this.isInfoWindowShow = true;
+//            MapStatusUpdate update = MapStatusUpdateFactory.newLatLng(marker.getPosition());
+//            mBaiduMap.setMapStatus(update);
+
             return true;
         } else {
             return false;
         }
+    }
+
+    private void hideInfoWindow(){
+
+        mBaiduMap.hideInfoWindow();
+        this.isInfoWindowShow = false;
     }
 
     //viewPager切换
@@ -518,6 +552,48 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     }
 
+    @Override
+    public void onMapStatusChangeStart(MapStatus mapStatus) {
+
+        Log.w("MapActivity", "onMapStatusChangeStart");
+
+       // hideInfoWindow();
+
+    }
+
+    @Override
+    public void onMapStatusChange(MapStatus mapStatus) {
+        Log.w("MapActivity","onMapStatusChange");
+
+    }
+
+    @Override
+    public void onMapStatusChangeFinish(MapStatus mapStatus) {
+
+        Log.w("MapActivity","onMapStatusChangeFinish");
+
+//        if (markerCenter != null)
+//            markerCenter.remove();
+
+        ptMapCenter = mapStatus.target;
+//
+//        MarkerOptions option = new MarkerOptions().icon(iconMapCenter).position(ptMapCenter);
+//
+//        Bundle des = new Bundle();
+//
+//        des.putString("des", "地图中心点");
+//
+//        option.extraInfo(des);
+//
+//        markerCenter = mBaiduMap.addOverlay(option);
+
+        radarRadius = (int)DistanceUtil.getDistance(mapStatus.bound.northeast,ptMapCenter);
+
+        this.searchNearby();
+
+        this.mGeoSearch.reverseGeoCode(new ReverseGeoCodeOption().location(ptMapCenter));
+    }
+
     public class MyOnPageChangeListener implements ViewPager.OnPageChangeListener {
 
         @Override
@@ -526,10 +602,18 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
                 //切换为地图
                 viewIndex = View_Map;
                 switchBtn.setText("列表");
+
+                btnMapCenter.setVisibility(View.VISIBLE);
+                btnLocation.setVisibility(View.VISIBLE);
+
             } else {
                 //切换为列表
                 viewIndex = View_List;
                 switchBtn.setText("地图");
+
+                btnMapCenter.setVisibility(View.INVISIBLE);
+                btnLocation.setVisibility(View.INVISIBLE);
+
             }
         }
 
@@ -604,11 +688,59 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         }
     }
 
-    public void onMyInfoClick(View v)
-    {
+    public void onMyInfoClick(View v){
         Intent intent = new Intent(MapActivity.this, SettingsActivity.class);
         startActivity(intent);
     }
+
+    public void onLocationClick(View v){
+        MapStatus mapStatus = mBaiduMap.getMapStatus();
+        this.mapToLocation(mapStatus.zoom);
+    }
+
+    private void mapToLocation(float zoom) {
+        if (ptUserLoc != null) {
+
+            MapStatus mapStatus = new MapStatus.Builder()
+                    .target(ptUserLoc).zoom(zoom)
+                    .build();
+
+            //定义MapStatusUpdate对象，以便描述地图状态将要发生的变化
+            MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mapStatus);
+            //改变地图状态
+            mBaiduMap.setMapStatus(mapStatusUpdate);
+        }
+    }
+
+    private OnGetGeoCoderResultListener getGeoCoderResultListener = new OnGetGeoCoderResultListener() {
+        public void onGetGeoCodeResult(GeoCodeResult result) {
+            if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
+                //没有检索到结果
+            }
+            //获取地理编码结果
+        }
+
+        @Override
+        public void onGetReverseGeoCodeResult(ReverseGeoCodeResult result) {
+            if (result == null || result.error != SearchResult.ERRORNO.NO_ERROR) {
+                //没有找到检索结果
+            }
+            else{
+                if(markerCenter != null){
+                    TextView popupText = new TextView(MapActivity.this);
+                    popupText.setBackgroundResource(R.drawable.popup);
+                    popupText.setTextColor(0xFF000000);
+                    popupText.setText(markerCenter.getExtraInfo().getString("des"));
+                    Bundle des = new Bundle();
+                    des.putString("des", result.getAddress());
+                    markerCenter.setExtraInfo(des);
+                }
+
+            }
+
+            //获取反向地理编码结果
+        }
+    };
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -631,6 +763,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             System.exit(0);
         }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -656,6 +789,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     @Override
     protected void onDestroy() {
 
+        mGeoSearch.destroy();
+
         //停止定时刷新周边
         handlerSearchNearby.removeCallbacks(runnableSearchNearby);
 
@@ -669,6 +804,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
         //释放地图
         ff3.recycle();
+        iconMapCenter.recycle();
         mMapView.onDestroy();
         mBaiduMap = null;
 
