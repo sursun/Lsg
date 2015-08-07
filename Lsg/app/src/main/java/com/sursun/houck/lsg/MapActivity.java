@@ -693,6 +693,11 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         startActivity(intent);
     }
 
+    public void onSendMessageClick(View v){
+        Intent intent = new Intent(MapActivity.this, SendMessageActivity.class);
+        startActivity(intent);
+    }
+
     public void onLocationClick(View v){
         MapStatus mapStatus = mBaiduMap.getMapStatus();
         this.mapToLocation(mapStatus.zoom);

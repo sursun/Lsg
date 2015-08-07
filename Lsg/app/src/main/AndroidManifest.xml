@@ -107,6 +107,10 @@
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings" >
         </activity>
+        <activity
+            android:name=".SendMessageActivity"
+            android:label="@string/title_activity_send_message" >
+        </activity>
     </application>
 
 </manifest>
