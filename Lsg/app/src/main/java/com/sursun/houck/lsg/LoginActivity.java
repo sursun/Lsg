@@ -1,25 +1,18 @@
 package com.sursun.houck.lsg;
 
-import android.content.Context;
-import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.sursun.houck.common.LocalConfig;
 import com.sursun.houck.common.ToastUtil;
 import com.sursun.houck.domain.User;
-import com.sursun.houck.im.IMCoreHelper;
-import com.sursun.houck.im.yuntx.SDKCoreHelper;
+import com.sursun.houck.im.OnIMLoginListener;
+import com.sursun.houck.im.yuntx.YuntxConnector;
 import com.yuntongxun.ecsdk.ECDevice;
-import com.yuntongxun.ecsdk.SdkErrorCode;
-
-import java.io.InvalidClassException;
-
 
 public class LoginActivity extends ActionBarActivity {
 
@@ -72,7 +65,12 @@ public class LoginActivity extends ActionBarActivity {
 
         LocalConfig.SaveUser(LoginActivity.this, mUser);
 
-        IMCoreHelper.getInstance().Login(mUser.Name);
+        YuntxConnector.getInstance().login(mUser.Name, new OnIMLoginListener() {
+            @Override
+            public void onLoginResult(boolean success, String msg) {
+
+            }
+        });
 
         bRet = true;
         return bRet;
