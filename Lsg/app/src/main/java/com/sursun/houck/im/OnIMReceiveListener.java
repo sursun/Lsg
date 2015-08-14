@@ -5,7 +5,7 @@ package com.sursun.houck.im;
  */
 public interface OnIMReceiveListener {
     // 收到新消息
-    void OnReceivedMessage(String msg);
+    void OnReceivedMessage(String from,String msg);
 
 //    // 收到群组通知消息（有人加入、退出...）
 //    // 可以根据ECGroupNoticeMessage.ECGroupMessageType类型区分不同消息类型

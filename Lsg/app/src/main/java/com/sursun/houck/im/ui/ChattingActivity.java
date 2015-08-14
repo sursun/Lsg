@@ -1,39 +1,24 @@
-package com.sursun.houck.lsg;
+package com.sursun.houck.im.ui;
 
-import android.content.Intent;
-import android.os.Handler;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.sursun.houck.common.ToastUtil;
+import com.sursun.houck.lsg.R;
 
-
-public class WelcomeActivity extends ActionBarActivity {
+public class ChattingActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_welcome);
-
-
-        new Handler().postDelayed(new Runnable() {
-
-            @Override
-            public void run() {
-                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-                startActivity(intent);
-                WelcomeActivity.this.finish();
-
-            }
-        }, 3000);
+        setContentView(R.layout.activity_chatting);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_welcome, menu);
+        getMenuInflater().inflate(R.menu.menu_chatting, menu);
         return true;
     }
 

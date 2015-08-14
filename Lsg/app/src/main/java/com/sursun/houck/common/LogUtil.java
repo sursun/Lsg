@@ -23,7 +23,7 @@ public class LogUtil {
 
     public static final String TAG = "HOUCK_Lsg";
     public static final String MSG = "log msg is null.";
-    public static final String LOCAL_POWER_PATH = FileAccessor.getExternalStorePath() + "/" + "ecsdk_log.txt";
+   // public static final String LOCAL_POWER_PATH = FileAccessor.getExternalStorePath() + "/" + "ecsdk_log.txt";
 
     private static List<String> logList;
 
@@ -125,34 +125,34 @@ public class LogUtil {
         isDebug = flag;
     }
 
-    public static synchronized void appendByBufferedWriter(String content) {
-        if (!isPrint) {
-            return;
-        }
-
-        BufferedWriter bw = null;
-        try {
-            File file = new File(LOCAL_POWER_PATH);
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
-            bw.write(content);
-            bw.flush();
-            bw.close();
-            LogUtil.d("[FileAccessor - appendContent] append finished.");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (bw != null) {
-                try {
-                    bw.close();
-                } catch (IOException e) {
-                }
-                bw = null;
-            }
-        }
-    }
+//    public static synchronized void appendByBufferedWriter(String content) {
+//        if (!isPrint) {
+//            return;
+//        }
+//
+//        BufferedWriter bw = null;
+//        try {
+//            File file = new File(LOCAL_POWER_PATH);
+//            if (!file.exists()) {
+//                file.createNewFile();
+//            }
+//            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true)));
+//            bw.write(content);
+//            bw.flush();
+//            bw.close();
+//            LogUtil.d("[FileAccessor - appendContent] append finished.");
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (bw != null) {
+//                try {
+//                    bw.close();
+//                } catch (IOException e) {
+//                }
+//                bw = null;
+//            }
+//        }
+//    }
 
     public static void printFile(InputStream is, String path) {
         FileOutputStream fos = null;

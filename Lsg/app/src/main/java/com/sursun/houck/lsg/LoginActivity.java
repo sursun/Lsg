@@ -1,5 +1,6 @@
 package com.sursun.houck.lsg;
 
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -33,7 +34,7 @@ public class LoginActivity extends ActionBarActivity {
 
         if (mUser != null){
             //attemptToLogin();
-            cMobile.setText(mUser.Name);
+            cMobile.setText(mUser.Mobile);
             cPassword.setText(mUser.Note);
         }
     }
@@ -50,7 +51,7 @@ public class LoginActivity extends ActionBarActivity {
         if(mUser == null)
             mUser = new User();
 
-        mUser.Name = mobile;
+        mUser.Mobile = mobile;
         mUser.Note = password;
 
         attemptToLogin();
@@ -65,9 +66,18 @@ public class LoginActivity extends ActionBarActivity {
 
         LocalConfig.SaveUser(LoginActivity.this, mUser);
 
-        YuntxConnector.getInstance().login(mUser.Name, new OnIMLoginListener() {
+        YuntxConnector.getInstance().login(mUser.Mobile, new OnIMLoginListener() {
             @Override
             public void onLoginResult(boolean success, String msg) {
+
+                Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+
+                intent.putExtra("username", LoginActivity.this.mUser.Mobile);
+                intent.putExtra("note", LoginActivity.this.mUser.Note);
+
+                LoginActivity.this.startActivity(intent);
+
+                LoginActivity.this.finish();
 
             }
         });
@@ -76,26 +86,6 @@ public class LoginActivity extends ActionBarActivity {
         return bRet;
     }
 
-    /**
-     * 网络注册状态改变
-     *
-     * @param connect
-     */
-    public void onNetWorkNotify(ECDevice.ECConnectState connect) {
-
-        if(ECDevice.ECConnectState.CONNECT_SUCCESS == connect){
-            ToastUtil.showMessage("登录成功");
-//            Intent intent = new Intent(LoginActivity.this, MapActivity.class);
-//
-//            intent.putExtra("username",mUser.Name);
-//            intent.putExtra("note", mUser.Note);
-//
-//            this.startActivity(intent);
-//
-//            LoginActivity.this.finish();
-        }
-
-    }
 
 //    @Override
 //    protected void handleReceiver(Context context, Intent intent) {

@@ -35,14 +35,14 @@ public class LocalConfig {
                 String[] lt = strContent.split("\\|");
 
                 user = new User();
-                user.Name = lt[0];
+                user.Mobile = lt[0];
                 user.Note = lt[1];
             }
 
             if(user == null){
                 Log.w("LocalConfig","User=null");
             }else{
-                Log.w("LocalConfig","User_Name=" + user.Name + "User_Note" + user.Note);
+                Log.w("LocalConfig","User_Name=" + user.Mobile + "User_Note" + user.Note);
             }
 
 
@@ -64,7 +64,7 @@ public class LocalConfig {
         try {
             String strContent = "";
 
-            strContent += user.Name;
+            strContent += user.Mobile;
             strContent += "|";
             strContent += user.Note;
 

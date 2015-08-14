@@ -1,5 +1,7 @@
 package com.sursun.houck.im.yuntx;
 
+import android.content.Context;
+
 import com.sursun.houck.common.LogUtil;
 import com.sursun.houck.common.ToastUtil;
 import com.sursun.houck.im.HKConnector;
@@ -46,7 +48,10 @@ public class YuntxConnector extends HKConnector {
         super.login(userId, l);
 
         if(!ECDevice.isInitialized()) {
-            ECDevice.initial(LsgApplication.getInstance(), new ECDevice.InitListener() {
+
+
+            Context ctx = LsgApplication.getInstance().getApplicationContext();
+            ECDevice.initial(ctx, new ECDevice.InitListener() {
                 @Override
                 public void onInitialized() {
                     // SDK已经初始化成功
@@ -62,11 +67,13 @@ public class YuntxConnector extends HKConnector {
                     // 3、当前手机设备系统版本低于ECSDK所支持的最低版本（当前ECSDK支持
                     //    Android Build.VERSION.SDK_INT 以及以上版本）
 
-                    LogUtil.d(TAG,"ECDevice initial error :" + exception.getMessage());
+                    LogUtil.d(TAG, "ECDevice initial error :" + exception.getMessage());
 
                     ECDevice.unInitial();
                 }
             });
+
+            return;
         }
 
         getInstance().initialized();
@@ -95,7 +102,8 @@ public class YuntxConnector extends HKConnector {
         }
 
         // 设置SDK注册结果回调通知，当第一次初始化注册成功或者失败会通过该引用回调
-        // 通知应用SDK注册状态
+        // 通知应用SDK注册状态.
+
 
         // 当网络断开导致SDK断开连接或者重连成功也会通过该设置回调
         // mInitParams.setOnChatReceiveListener(IMChattingHelper.getInstance());
@@ -103,12 +111,13 @@ public class YuntxConnector extends HKConnector {
 
             @Override
             public void onConnect() {
-
+                LogUtil.d(TAG , "onConnect ");
             }
 
             @Override
             public void onDisconnect(ECError ecError) {
 
+                LogUtil.d(TAG , "onConnectState " + ecError.errorCode);
             }
 
             @Override
@@ -144,7 +153,14 @@ public class YuntxConnector extends HKConnector {
             }
         });
 
-        ECDevice.login(mInitParams);
+        try {
+            ECDevice.login(mInitParams);
+        }
+        catch (Exception ex)
+        {
+            LogUtil.d(TAG,ex.getMessage());
+        }
+
     }
 
     @Override
@@ -155,11 +171,11 @@ public class YuntxConnector extends HKConnector {
             // 组建一个待发送的ECMessage
             ECMessage ecMsg = ECMessage.createECMessage(ECMessage.Type.TXT);
             //设置消息的属性：发出者，接受者，发送时间等
-            ecMsg.setForm("$Tony的账号");
+            ecMsg.setForm(from);
             ecMsg.setMsgTime(System.currentTimeMillis());
             // 设置消息接收者
-            ecMsg.setTo("$John的账号");
-            ecMsg.setSessionId("$John的账号");
+            ecMsg.setTo(to);
+            ecMsg.setSessionId(to);
             // 设置消息发送类型（发送或者接收）
             ecMsg.setDirection(ECMessage.Direction.SEND);
 
@@ -184,6 +200,7 @@ public class YuntxConnector extends HKConnector {
                         YuntxConnector.getInstance().sendListener.onComplete(true,"发送成功");
                     }
                 }
+
 
                 @Override
                 public void onProgress(String msgId, int totalByte, int progressByte) {
@@ -215,9 +232,8 @@ public class YuntxConnector extends HKConnector {
 
                 // 接收到的IM消息，根据IM消息类型做不同的处理(IM消息类型：ECMessage.Type)
                 ECMessage.Type type = ecMessage.getType();
-                if(type == ECMessage.Type.TXT) {
-                    // 在这里处理文本消息
-                    ECTextMessageBody textMessageBody = (ECTextMessageBody) ecMessage.getBody();
+                if(type != ECMessage.Type.TXT) {
+                    return;//非文本消息，暂时不处理 houck
                 }
                 //
                 //houck 暂时只处理文本消息
@@ -262,10 +278,12 @@ public class YuntxConnector extends HKConnector {
                 // 根据不同类型处理完消息之后，将消息序列化到本地存储（sqlite）
                 // 通知UI有新消息到达
 
+                // 在这里处理文本消息
+                ECTextMessageBody textMessageBody = (ECTextMessageBody) ecMessage.getBody();
 
                 if(YuntxConnector.getInstance().receiveListener != null)
                 {
-                    //YuntxConnector.getInstance().receiveListener.OnReceivedMessage();
+                    YuntxConnector.getInstance().receiveListener.OnReceivedMessage(ecMessage.getForm(),textMessageBody.getMessage());
                 }
             }
 

@@ -664,8 +664,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
         @Override
         public int getCount() {
-            if (list == null || (list!= null && list.size() < 10)) {
-                return 10;
+            if (list == null) {
+                return 0;
             } else {
                 return list.size();
             }
