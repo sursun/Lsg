@@ -7,17 +7,17 @@ import java.util.Date;
  */
 public class User {
     //手机号，登录名
-    public String Mobile="";
+    public String mobile="";
     //密码
-    public String PassWord="";
+    public String passWord="";
     //昵称
-    public String NickName="";
+    public String nickName="";
     //性别
-    public Gender Gender;
+    public Gender gender;
     //备注
-    public String Note="";
+    public String note="";
 
     //创建日期
-    public Date CreateTime;
+    public Date createTime;
 }
 
