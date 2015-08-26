@@ -2,6 +2,7 @@ package com.sursun.houck.lsg;
 
 import android.app.Application;
 
+import com.baidu.location.BDLocation;
 import com.baidu.mapapi.SDKInitializer;
 import com.sursun.houck.common.LogUtil;
 
@@ -11,6 +12,9 @@ import com.sursun.houck.common.LogUtil;
 public class LsgApplication extends Application {
 
     private static LsgApplication instance;
+
+    // 定位结果
+    public BDLocation currlocation = null;
 
     /**
      * 单例，返回一个实例

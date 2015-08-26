@@ -1,6 +1,8 @@
 package com.sursun.houck.lsg;
 
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -8,12 +10,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 
+import com.sursun.houck.bdapi.LBSCloudSearch;
+import com.sursun.houck.bdapi.LBSLocation;
 import com.sursun.houck.common.LocalConfig;
 import com.sursun.houck.common.ToastUtil;
+import com.sursun.houck.dao.UserDao;
 import com.sursun.houck.domain.User;
 import com.sursun.houck.im.OnIMLoginListener;
 import com.sursun.houck.im.yuntx.YuntxConnector;
-import com.yuntongxun.ecsdk.ECDevice;
+
+import java.util.Date;
 
 public class LoginActivity extends ActionBarActivity {
 
@@ -27,6 +33,9 @@ public class LoginActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        //定位
+        LBSLocation.getInstance(LsgApplication.getInstance()).startLocation(true);
+
         cMobile = (EditText)findViewById(R.id.mobile);
         cPassword= (EditText)findViewById(R.id.password);
 
@@ -34,8 +43,8 @@ public class LoginActivity extends ActionBarActivity {
 
         if (mUser != null){
             //attemptToLogin();
-            cMobile.setText(mUser.Mobile);
-            cPassword.setText(mUser.Note);
+            cMobile.setText(mUser.getMobile());
+            cPassword.setText(mUser.getNote());
         }
     }
 
@@ -51,8 +60,10 @@ public class LoginActivity extends ActionBarActivity {
         if(mUser == null)
             mUser = new User();
 
-        mUser.Mobile = mobile;
-        mUser.Note = password;
+        mUser.setMobile(mobile);
+        mUser.setPassword(password);
+
+        mUser.setLastlogintime(new Date(System.currentTimeMillis()));
 
         attemptToLogin();
     }
@@ -66,21 +77,41 @@ public class LoginActivity extends ActionBarActivity {
 
         LocalConfig.SaveUser(LoginActivity.this, mUser);
 
-        YuntxConnector.getInstance().login(mUser.Mobile, new OnIMLoginListener() {
-            @Override
-            public void onLoginResult(boolean success, String msg) {
+        UserDao userDao = new UserDao();
 
-                Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+        userDao.saveOrUpdate(mUser, new Handler(){
+            public void handleMessage(Message msg) {
+                //progress.setVisibility(View.INVISIBLE);
+                switch (msg.what) {
+                    case LBSCloudSearch.MSG_NET_TIMEOUT:
+                        ToastUtil.showMessage("创建用户时，超时！");
+                        break;
+                    case LBSCloudSearch.MSG_NET_STATUS_ERROR:
+                        ToastUtil.showMessage("创建用户失败:" + msg.obj.toString());
+                        break;
+                    case LBSCloudSearch.MSG_NET_SUCC:
+                        ToastUtil.showMessage("创建用户成功！");
+                        break;
 
-                intent.putExtra("username", LoginActivity.this.mUser.Mobile);
-                intent.putExtra("note", LoginActivity.this.mUser.Note);
-
-                LoginActivity.this.startActivity(intent);
-
-                LoginActivity.this.finish();
-
+                }
             }
         });
+
+//        YuntxConnector.getInstance().login(mUser.getMobile(), new OnIMLoginListener() {
+//            @Override
+//            public void onLoginResult(boolean success, String msg) {
+//
+//                Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+//
+//                intent.putExtra("username", LoginActivity.this.mUser.getMobile());
+//                intent.putExtra("note", LoginActivity.this.mUser.getNote());
+//
+//                LoginActivity.this.startActivity(intent);
+//
+//                LoginActivity.this.finish();
+//
+//            }
+//        });
 
         bRet = true;
         return bRet;
