@@ -1,0 +1,43 @@
+﻿
+.top_guide {
+    display: block;
+    height: 30px;
+    border-bottom: 2px solid brown;
+    margin-bottom: 20px;
+}
+
+div.top_guide ul {
+    list-style: none; /* 去掉ul前面的符号 */
+    margin: 0px; /* 与外界元素的距离为0 */
+    padding: 0px; /* 与内部元素的距离为0 */
+    width: auto; /* 宽度根据元素内容调整 */
+    color: #666666;
+    font-size: larger;
+}
+
+    div.top_guide ul li {
+        float: left;
+        margin-left: 20px;
+        margin-right: 30px;
+    }
+
+.top_guide_cur {
+    color: brown;
+    font-weight: bold;
+}
+
+.user_info {
+    font-size: 14px;
+    color: #444444;
+    font-family: "微软雅黑";
+    padding-left: 60px;
+    margin-top: 10px;
+    border-top: #95b8e7 2px solid;
+    border-bottom: #95b8e7 2px solid;
+    width: 500px;
+}
+
+table.user_info tr td span {
+    font-weight: bold;
+    width: 100px;
+}

@@ -1,0 +1,30 @@
+﻿@using Gms.Domain
+
+@{
+    Layout = "~/Views/Shared/EmptyLayout.cshtml";
+}
+
+<body>
+
+    <div id="toolbar" style="padding: 5px; height: auto">
+        <div>
+            工号：<input name="LoginName" class="messager-input" style="width: 80px" />
+            内容：<input name="LogInfo" class="messager-input" style="width: 80px" />
+            日期：<input name="CreateTime.Start" class="easyui-datebox" style="width: 80px" />至<input name="CreateTime.End" class="easyui-datebox" style="width: 80px" />
+            <a href="#" id="syslog_search" class="easyui-linkbutton search" iconcls="icon-search">搜索</a>
+        </div>
+    </div>
+     
+    <table id="syslog_search_list" url="@Url.Action("List","SysLog")">
+            
+    </table>
+        
+</body>
+<script type="text/javascript" src="@Url.Content("/Scripts/SysLog/SysLog.js")"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        SysLog.Init();
+    });
+</script>
+
+

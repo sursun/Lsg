@@ -1,0 +1,57 @@
+﻿@using Gms.Domain
+@model Gms.Domain.Department
+
+@{
+    Layout = null;
+}
+
+<form id="departmentform" method="post" action="/Department/CreateOrUpdate">
+
+    <table>
+        <tr>
+            <td>名称</td>
+            <td>
+ 
+                @Html.TextBoxFor(c => c.Name,new{@class="editdisabled"})
+               
+                <input id="Id" name="Id" style="display: none" type="number" value="@Model.Id"/>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>上级科室</td>
+            <td>
+                @{
+                    int parentId = 0;
+                    string parentName = "";
+                    if ( Model != null && Model.Parent != null)
+                    {
+                        parentId = Model.Parent.Id;
+                        parentName = Model.Parent.Name;
+                    }
+                }
+
+                <input id="Parent_Id" name="Parent.Id" style="display: none" value="@parentId" />
+                <input id="Parent_Name" name="Parent.Name"  disabled="disabled" value="@parentName" />
+
+                <a id="selectDept" href="#">选择科室</a>
+            </td>
+        </tr>
+        
+       
+        <tr>
+            <td>备注</td>
+            <td>
+                @Html.TextAreaFor(c=>c.Note)
+            </td>
+        </tr>
+     
+    </table>
+
+</form>
+
+<div id="selcet_dept_dlg" dlgtitle="选择上级科室" style="display: none;padding:8px; ">
+    <iframe id="selcet_dept_dlg_content" style="width: 100%; height: 100%; border: none;" frameborder="no">
+        @*动态加载*@
+    </iframe>
+</div>

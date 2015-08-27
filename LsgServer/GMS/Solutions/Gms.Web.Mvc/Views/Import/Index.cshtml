@@ -1,0 +1,68 @@
+﻿@model dynamic
+
+@{
+    Layout = "~/Views/Shared/EmptyLayout.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>数据导入</title>
+    </head>
+    <body>
+        <div>
+            <a href="#" id="importuser">导入患者</a>
+            <a href="#" id="importclinic">导入临床事件</a>
+            <a href="#" id="importMedicate">导入用药</a>
+            <a href="#" id="importMedicine">导入药品</a>
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        $(function () {
+
+            $("#importuser").click(function () {
+                $.post("/Import/ImportPatient", {}, function (data) {
+                    if (data.success) {
+                        alert("导入成功");
+                    } else {
+                        alert(data.data);
+                    }
+                }, 'json');
+            });
+
+            $("#importclinic").click(function () {
+                $.post("/Import/ImportClinic", {}, function (data) {
+                    if (data.success) {
+                        alert("导入成功");
+                    } else {
+                        alert(data.data);
+                    }
+                }, 'json');
+            });
+
+            $("#importMedicine").click(function () {
+                $.post("/Import/ImportMedicine", {}, function (data) {
+                    if (data.success) {
+                        alert("导入成功");
+                    } else {
+                        alert(data.data);
+                    }
+                }, 'json');
+            });
+
+            $("#importMedicate").click(function () {
+                $.post("/Import/ImportMedicate", {}, function (data) {
+                    if (data.success) {
+                        alert("导入成功");
+                    } else {
+                        alert(data.data);
+                    }
+                }, 'json');
+            });
+       
+        });
+        
+    </script>
+</html>

@@ -1,0 +1,38 @@
+﻿@using Gms.Domain
+
+@{
+    Layout = "~/Views/Shared/EmptyLayout.cshtml";
+}
+
+<body>
+
+    <div id="toolbar" style="padding: 5px; height: auto">
+        <div style="margin-bottom: 5px">
+            <a href="#" id="btnAdd" class="easyui-linkbutton" forgid="department_search_list" iconcls="icon-add" plain="true">添加</a>
+            <a href="#" id="btnDel" class="easyui-linkbutton" forgid="department_search_list" iconcls="icon-remove" plain="true">删除</a>
+            <a href="#" id="btnEdit" class="easyui-linkbutton" forgid="department_search_list" iconcls="icon-edit" plain="true">修改</a>
+        </div>
+    </div>
+     
+    <table id="department_search_list" url="@Url.Action("List","Department")" edit="@Url.Action("Get","Department")" del="@Url.Action("Delete","Department")">
+            
+    </table>
+        
+    <div id="department_search_edit" dlgtitle="科室信息" style="display: none">
+        <div id="department_search_edit_content">
+            @{
+                Html.RenderPartial("Edit", new Department());
+            }
+        </div>
+    </div>
+    
+</body>
+<script type="text/javascript" src="@Url.Content("/Scripts/Department/Department.js")"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        Department.Init();
+    });
+
+</script>
+
+

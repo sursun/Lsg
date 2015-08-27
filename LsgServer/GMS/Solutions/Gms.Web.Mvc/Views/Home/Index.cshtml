@@ -1,0 +1,127 @@
+﻿@using Gms.Domain
+@model Gms.Domain.Doctor
+@{
+    ViewBag.Title = "Home";
+    Layout = "~/Views/Shared/EasyLayout.cshtml";
+}
+
+@section CompanyName{
+    糖尿病分阶段达标管理系统
+}
+
+@section Loginfo{
+@*    <li><a href="#">帮助</a></li>*@
+    <li>
+        <a href="#">
+            @if (Model != null)
+            {
+                <div>@Model.RealName ，你好！</div>
+            }
+            else
+            {
+                <div>欢迎您，超级管理员！</div>
+            }
+        </a>
+    </li>
+    <li>
+        @using (Html.BeginForm("LogOff", "SGAccount", new { area = "" }, FormMethod.Post, new { id = "logoutForm" }))
+        {
+            @Html.AntiForgeryToken()
+            <a href="javascript:document.getElementById('logoutForm').submit()">退出</a>
+        }
+    </li>
+
+}
+
+@section SystemVersion{
+    <div>
+        山东大学第二医院 信息中心 版权所有2016 Ver @ViewData["SysVersion"] (试用版) <a href="/Home/UpdateRecord" target="_blank">更新记录</a>
+    </div>
+}
+
+@section FunctionTree{
+
+    <div>
+        <ul id="funTree" class="easyui-tree">
+
+            <li data-options="iconCls:'icon-user'">
+                <span>患者管理</span>
+                <ul>
+                    <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/FollowUp/Notice'}"><span>就诊备忘录</span></li>
+                    <li>
+                        <span>妊娠糖尿病</span>
+                        <ul>
+                            <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Patient/Add?type=@((int)DiabetesType.妊娠糖尿病)'}">
+                                <span>新增患者(妊娠)</span>
+                            </li>
+                            <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Patient?type=@((int)DiabetesType.妊娠糖尿病)'}">
+                                <span>随访管理(妊娠)</span>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <span>1型/2型糖尿病</span>
+     
+                        <ul>
+                            <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Patient/Add?type=@((int)DiabetesType.普通糖尿病)'}">
+                                <span>新增患者</span>
+                            </li>
+                            <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Patient?type=@((int)DiabetesType.普通糖尿病)'}">
+                                <span>随访管理</span>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            
+            @if (Model == null)
+            {
+                <li data-options="iconCls:'icon-store'">
+                    <span>统计分析</span>
+                    <ul>
+                        <li data-options="iconCls:'icon-tree-node'"><span>情况统计</span></li>
+                        <li data-options="iconCls:'icon-tree-node'"><span>统计</span></li>
+                    </ul>
+                </li>
+                <li data-options="iconCls:'icon-config'">
+                    <span>系统配置</span>
+                    <ul>
+                        <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Department'}"><span>科室管理</span></li>
+                        <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Doctor'}"><span>医生管理</span></li>
+                        <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Medicine'}"><span>药品库</span></li>
+                        <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Disease'}"><span>疾病维护</span></li>
+                        <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/CommonCode'}"><span>数据字典</span></li>
+                        <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/SysLog'}"><span>系统日志</span></li>
+                    </ul>
+                </li>
+            }
+            
+            <li data-options="iconCls:'icon-tree-node',attributes:{'url':'/Doctor/ChangePassword'}"><span>修改密码</span></li>
+        </ul>
+        
+    </div>
+}
+
+<body>
+
+    <script src="@Url.Content("/Scripts/home.js")" type="text/javascript"></script>
+
+    <div id="mainTab" class="easyui-tabs" data-options="fit:true,border:false">
+        <div title="首页" style="padding:5px;">
+            <iframe style="width: 100%;height:100%;border: none;" src="/Home/Welcome" frameborder="no"></iframe>
+        </div>
+    </div>
+    
+    <div id="newTemplate" style="display: none;">
+        <div title="新建Tab" style="padding:5px;overflow: hidden;">
+            <iframe style="width: 100%;height:100%;border: none;" frameborder="no"></iframe>
+        </div>
+    </div>
+    
+    <script type="text/javascript">
+        $(document).ready(function () {
+            Home.Init();
+        });
+
+</script>
+</body>

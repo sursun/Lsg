@@ -1,0 +1,42 @@
+﻿@using Gms.Domain
+
+@{
+    Layout = "~/Views/Shared/EmptyLayout.cshtml";
+}
+<body>
+    <div id="tabCommonCode" class="easyui-tabs" data-options="fit:true">	
+        <div title="地区" style="padding:10px">	
+            <iframe style="width: 100%;height:100%;border: none;" src="/CommonCode/TypeInfo?type=@((int)CommonCodeType.地区)" frameborder="no"></iframe>
+        </div>	
+        <div title="民族" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.民族)" frameborder="no"></iframe>
+        </div>
+        <div title="职业" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.职业)" frameborder="no"></iframe>
+        </div>
+        <div title="糖尿病类型" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.糖尿病类型)" frameborder="no"></iframe>
+        </div>
+        <div title="栏目类型" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.栏目类型)" frameborder="no"></iframe>
+        </div>	
+        <div title="教育水平" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.教育水平)" frameborder="no"></iframe>
+        </div>
+        <div title="疾病类别" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.疾病类别)" frameborder="no"></iframe>		
+        </div>
+        <div title="药品类别" style="padding:10px">
+            <iframe style="width: 100%;height:100%;border: none;" url="/CommonCode/TypeInfo?type=@((int)CommonCodeType.药品类别)" frameborder="no"></iframe>		
+        </div>
+    </div>
+</body>
+
+<script type="text/javascript" src="@Url.Content("/Scripts/CommonCode/CommonCode.js")"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        CommonCode.Init();
+    });
+
+</script>
+
