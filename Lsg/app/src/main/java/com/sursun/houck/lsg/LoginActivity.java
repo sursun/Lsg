@@ -1,6 +1,7 @@
 package com.sursun.houck.lsg;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
@@ -39,12 +40,20 @@ public class LoginActivity extends ActionBarActivity {
         cMobile = (EditText)findViewById(R.id.mobile);
         cPassword= (EditText)findViewById(R.id.password);
 
-        mUser = LocalConfig.GetUser(LoginActivity.this);
+        //mUser = LocalConfig.GetUser(LoginActivity.this);
+        mUser = new User();
+
+       // mUser.setLoginname();
+
+        String name = LocalConfig.GetLoginName();
+        String psw = LocalConfig.GetPassWord();
+//        SharedPreferences userInfo = getSharedPreferences("user_info", 0);
+//        mName = userInfo.getString("name", "");
 
         if (mUser != null){
             //attemptToLogin();
-            cMobile.setText(mUser.getMobile());
-            cPassword.setText(mUser.getNote());
+            cMobile.setText(name);
+            cPassword.setText(psw);
         }
     }
 
@@ -60,42 +69,45 @@ public class LoginActivity extends ActionBarActivity {
         if(mUser == null)
             mUser = new User();
 
-        mUser.setMobile(mobile);
-        mUser.setPassword(password);
+        mUser.setLoginName(mobile);
 
-        mUser.setLastlogintime(new Date(System.currentTimeMillis()));
-
-        attemptToLogin();
+        attemptToLogin(mobile,password);
     }
 
-    private boolean attemptToLogin(){
+    private boolean attemptToLogin(String name,String psw){
 
         boolean bRet = false;
 
         if(mUser == null)
             return bRet;
 
-        LocalConfig.SaveUser(LoginActivity.this, mUser);
+        LocalConfig.SaveLoginName(name);
+        LocalConfig.SavePassWord(psw);
+
+        //LocalConfig.SaveUser(LoginActivity.this, mUser);
 
         UserDao userDao = new UserDao();
 
-        userDao.saveOrUpdate(mUser, new Handler(){
-            public void handleMessage(Message msg) {
-                //progress.setVisibility(View.INVISIBLE);
-                switch (msg.what) {
-                    case LBSCloudSearch.MSG_NET_TIMEOUT:
-                        ToastUtil.showMessage("创建用户时，超时！");
-                        break;
-                    case LBSCloudSearch.MSG_NET_STATUS_ERROR:
-                        ToastUtil.showMessage("创建用户失败:" + msg.obj.toString());
-                        break;
-                    case LBSCloudSearch.MSG_NET_SUCC:
-                        ToastUtil.showMessage("创建用户成功！");
-                        break;
+        bRet = userDao.RegisterUser(name,psw);
+        //bRet = userDao.ValidUser(name,psw);
 
-                }
-            }
-        });
+//        userDao.saveOrUpdate(mUser, new Handler(){
+//            public void handleMessage(Message msg) {
+//                //progress.setVisibility(View.INVISIBLE);
+//                switch (msg.what) {
+//                    case LBSCloudSearch.MSG_NET_TIMEOUT:
+//                        ToastUtil.showMessage("创建用户时，超时！");
+//                        break;
+//                    case LBSCloudSearch.MSG_NET_STATUS_ERROR:
+//                        ToastUtil.showMessage("创建用户失败:" + msg.obj.toString());
+//                        break;
+//                    case LBSCloudSearch.MSG_NET_SUCC:
+//                        ToastUtil.showMessage("创建用户成功！");
+//                        break;
+//
+//                }
+//            }
+//        });
 
 //        YuntxConnector.getInstance().login(mUser.getMobile(), new OnIMLoginListener() {
 //            @Override
@@ -113,7 +125,7 @@ public class LoginActivity extends ActionBarActivity {
 //            }
 //        });
 
-        bRet = true;
+        //bRet = true;
         return bRet;
     }
 

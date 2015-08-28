@@ -6,155 +6,153 @@ import java.util.HashMap;
 /**
  * Created by houck on 2015/7/31.
  */
-public class User extends Entity {
+public class User extends EntityBase {
+
+
+    public String getLoginName() {
+        return LoginName;
+    }
+
+    public void setLoginName(String loginName) {
+        LoginName = loginName;
+    }
 
     public String getMobile() {
-        return mobile;
+        return Mobile;
     }
 
     public void setMobile(String mobile) {
-        this.mobile = mobile;
+        Mobile = mobile;
     }
 
-    public String getPassword() {
-        return password;
+    public String getRealName() {
+        return RealName;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setRealName(String realName) {
+        RealName = realName;
     }
 
     public String getNickName() {
-        return nickname;
+        return NickName;
     }
 
     public void setNickName(String nickName) {
-        this.nickname = nickName;
+        NickName = nickName;
     }
 
     public int getGender() {
-        return gender;
+        return Gender;
     }
 
     public void setGender(int gender) {
-        this.gender = gender;
+        Gender = gender;
     }
 
     public int getLevel() {
-        return level;
+        return Level;
     }
 
     public void setLevel(int level) {
-        this.level = level;
+        Level = level;
     }
 
     public int getPoints() {
-        return points;
+        return Points;
     }
 
     public void setPoints(int points) {
-        this.points = points;
+        Points = points;
     }
 
-    public int getCalltimes() {
-        return calltimes;
+    public int getCallTimes() {
+        return CallTimes;
     }
 
-    public void setCalltimes(int calltimes) {
-        this.calltimes = calltimes;
+    public void setCallTimes(int callTimes) {
+        CallTimes = callTimes;
     }
 
-    public int getRespondtimes() {
-        return respondtimes;
+    public int getRespondTimes() {
+        return RespondTimes;
     }
 
-    public void setRespondtimes(int respondtimes) {
-        this.respondtimes = respondtimes;
+    public void setRespondTimes(int respondTimes) {
+        RespondTimes = respondTimes;
     }
 
     public int getReceiveTimes() {
-        return receiveTimes;
+        return ReceiveTimes;
     }
 
     public void setReceiveTimes(int receiveTimes) {
-        this.receiveTimes = receiveTimes;
+        ReceiveTimes = receiveTimes;
     }
 
     public String getIntro() {
-        return intro;
+        return Intro;
     }
 
     public void setIntro(String intro) {
-        this.intro = intro;
+        Intro = intro;
     }
 
     public String getNote() {
-        return note;
+        return Note;
     }
 
     public void setNote(String note) {
-        this.note = note;
+        Note = note;
     }
 
-    public Date getLastlogintime() {
-        return lastlogintime;
+    public Date getCreateTime() {
+        return CreateTime;
     }
 
-    public void setLastlogintime(Date lastlogintime) {
-        this.lastlogintime = lastlogintime;
+    public void setCreateTime(Date createTime) {
+        CreateTime = createTime;
     }
 
-    //手机号，登录名
-    private String mobile;
+    //登录名
+    private String LoginName;
 
-    //密码
-    private String password;
+    //手机号
+    private String Mobile;
+
+    //真实姓名
+    private String RealName;
 
     //昵称
-    private String nickname;
+    private String NickName;
 
     //性别
     //0：男
     //1：女
-    private int gender;
+    private int Gender;
 
     //等级
-    private int level;
+    private int Level;
 
     //积分
-    private int points;
+    private int Points;
 
     //发布任务次数
-    private int calltimes;
+    private int CallTimes;
 
     //响应任务次数
-    private int respondtimes;
+    private int RespondTimes;
 
     //执行任务次数
-    private int receiveTimes;
+    private int ReceiveTimes;
 
     //自我介绍
-    private String intro;
+    private String Intro;
 
     //备注
-    private String note;
+    private String Note;
 
-    //最后一次登录时间
-    private Date lastlogintime;
+    //创建时间
+    private Date CreateTime;
 
-    @Override
-    public String getGeotableId() {
-        return "62066";
-    }
-
-    @Override
-    public HashMap<String, String> getFilterParams() {
-        HashMap<String, String> mp = super.getFilterParams();
-        mp.put("radius", "eee");
-
-
-
-        return mp;
-    }
 }
 

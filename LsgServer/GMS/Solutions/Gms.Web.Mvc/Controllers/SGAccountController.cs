@@ -144,20 +144,37 @@ namespace Gms.Web.Mvc.Controllers
 
 
         #region Android
+
+        public ActionResult TestConnect()
+        {
+            return JsonSuccess();
+        }
+
         //[HttpPost]
         public virtual ActionResult AndroidLogin(string name, string psw)
         {
             if (membershipService.ValidateUser(name, psw))
             {
-                String userName = name;
-                String strPsw = psw;
+                //String userName = name;
+                //String strPsw = psw;
 
-                return JsonSuccess(new {Name = userName, PassWord = strPsw});
+                //return JsonSuccess(new {Name = userName, PassWord = strPsw});
+
+                User user = this.UserRepository.Get(name);
+
+                if (user == null)
+                {
+                    return JsonError("无法识别该用户");
+                }
+
+                return JsonSuccess(user);
             }
             
             return JsonError("用户名或密码不正确！");
         }
 
+    
+        [HttpPost]
         [Transaction]
         public ActionResult RegisterUser(string mobile, string psw)
         {

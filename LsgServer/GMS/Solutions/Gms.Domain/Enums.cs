@@ -46,6 +46,8 @@ namespace Gms.Domain
 
     public enum CommonCodeType
     {
+        没有,
+        其他
     }
 }
 

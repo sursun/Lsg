@@ -5,7 +5,7 @@ import java.util.Date;
 /**
  * Created by houck on 2015/8/17.
  */
-public class UserEval extends Entity {
+public class UserEval extends EntityBase {
 
     public int getToUserId() {
         return toUserId;
@@ -75,8 +75,5 @@ public class UserEval extends Entity {
     //评价时间
     private Date createTime;
 
-    @Override
-    public String getGeotableId() {
-        return "117515";
-    }
+
 }

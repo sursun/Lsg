@@ -6,7 +6,7 @@ import java.util.Date;
  * Created by houck on 2015/8/17.
  * 任务咨询
  */
-public class TaskAsk extends Entity {
+public class TaskAsk extends EntityBase {
 
     public int getTaskId() {
         return taskId;
@@ -52,8 +52,4 @@ public class TaskAsk extends Entity {
     //咨询时间
     private Date createTime;
 
-    @Override
-    public String getGeotableId() {
-        return "117519";
-    }
 }

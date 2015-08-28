@@ -6,12 +6,8 @@ import java.util.Date;
  * Created by houck on 2015/8/17.
  * 任务
  */
-public class Task extends Entity {
+public class Task extends EntityBase {
 
-    @Override
-    public String getGeotableId() {
-        return "117513";
-    }
 
     public int getUserId() {
         return userId;

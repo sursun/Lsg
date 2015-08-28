@@ -3,7 +3,7 @@ package com.sursun.houck.dao;
 import android.os.Handler;
 
 import com.sursun.houck.bdapi.LBSCloudSearch;
-import com.sursun.houck.domain.Entity;
+import com.sursun.houck.domain.EntityBase;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by houck on 2015/8/17.
  */
-public class DaoBase<M extends Entity> implements IDaoBase<M>{
+public class DaoBase<M extends EntityBase> implements IDaoBase<M>{
     @Override
     public void delete(int id) {
 
@@ -31,7 +31,7 @@ public class DaoBase<M extends Entity> implements IDaoBase<M>{
         }else {
             //create
 
-            LBSCloudSearch.create(item.getGeotableId(), mp, callback);
+           // LBSCloudSearch.create(item.getGeotableId(), mp, callback);
 
 
         }

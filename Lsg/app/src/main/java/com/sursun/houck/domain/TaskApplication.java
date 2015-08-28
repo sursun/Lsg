@@ -6,7 +6,7 @@ import java.util.Date;
  * Created by houck on 2015/8/17.
  * 任务申请
  */
-public class TaskApplication extends Entity{
+public class TaskApplication extends EntityBase {
 
     public int getTaskId() {
         return taskId;
@@ -75,8 +75,5 @@ public class TaskApplication extends Entity{
     // 0：等待审核 1：审核通过 2：拒绝
     private int status;
 
-    @Override
-    public String getGeotableId() {
-        return "117520";
-    }
+
 }

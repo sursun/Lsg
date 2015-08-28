@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sursun.houck.lsg" >
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!--<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />-->
     <!-- <uses-permission android:name="android.permission.INTERNET"/> -->
     <uses-permission android:name="com.android.launcher.permission.READ_SETTINGS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -52,7 +52,7 @@
     <!-- 允许应用写（非读）用户的外部存储器 -->
     <!-- <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> -->
     <!-- 允许读取电话的状态 -->
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!--<uses-permission android:name="android.permission.READ_PHONE_STATE" />-->
     <!-- 允许一个程序获取信息有关当前或最近运行的任务，一个缩略的任务状态，是否活动等等 -->
     <uses-permission android:name="android.permission.GET_TASKS" />
     <!-- 允许程序录制音频 -->
@@ -123,10 +123,7 @@
             android:name=".SendMessageActivity"
             android:label="@string/title_activity_send_message" >
         </activity>
-        <activity
-            android:name="com.sursun.houck.im.ui.Main2Activity"
-            android:label="@string/title_activity_main2" >
-        </activity>
+
         <activity
             android:name="com.sursun.houck.im.ui.ChattingActivity"
             android:label="@string/title_activity_chatting" >
