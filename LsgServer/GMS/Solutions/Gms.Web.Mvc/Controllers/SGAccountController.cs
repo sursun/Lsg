@@ -174,7 +174,7 @@ namespace Gms.Web.Mvc.Controllers
         }
 
     
-        [HttpPost]
+        //[HttpPost]
         [Transaction]
         public ActionResult RegisterUser(string mobile, string psw)
         {

@@ -3,7 +3,9 @@ package com.sursun.houck.common;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.AsyncTask;
 import android.text.format.DateFormat;
+import android.util.Log;
 
 import com.sursun.houck.domain.EntityBase;
 import com.sursun.houck.model.ResponseModel;
@@ -40,17 +42,21 @@ import java.util.ListIterator;
  * Created by houck on 2015/8/28.
  */
 public class HttpUtil {
-    //public static final String BASE_URL = "http://10.0.2.2:51949";
-    public static final String BASE_URL = "http://192.168.0.112:51949";
+    private static String mTag="HttpUtil";
 
-    public static final String REQUEST_Knock_Server = "/SGAccount/TestConnect";
-    public static final String REQUEST_Login = "/SGAccount/AndroidLogin";
-    public static final String User_Register = "/SGAccount/RegisterUser";
-    public static final String REQUEST_ChangePassWord = "/SGAccount/PadChangePassword";
-    public static final String REQUEST_GetResources = "/FileManager/GetResources";
-    public static final String REQUEST_DownloadResources = "/FileManager/Download?url=";
+    public static final String BASE_URL = "http://10.0.2.2:51949";
+    //public static final String BASE_URL = "http://192.168.0.101:51949";
+    //private static final String BASE_URL = "http://192.168.0.112:51949";
 
-    public static HttpGet getHttpGet(String url){
+    private static final String REQUEST_Knock_Server = "/SGAccount/TestConnect";
+    private static final String REQUEST_ChangePassWord = "/SGAccount/PadChangePassword";
+    private static final String REQUEST_GetResources = "/FileManager/GetResources";
+    private static final String REQUEST_DownloadResources = "/FileManager/Download?url=";
+
+    private static HttpTask httpTask = null;
+    private static IHttpResponseHandler responseHandler = null;
+
+    private static HttpGet getHttpGet(String url){
         if(!url.startsWith("http"))
             url = BASE_URL + url;
 
@@ -60,8 +66,7 @@ public class HttpUtil {
         return request;
     }
 
-    public static HttpPost getHttpPost(String url)
-    {
+    private static HttpPost getHttpPost(String url){
         if(!url.startsWith("http"))
             url = BASE_URL + url;
         System.out.println("getHttpPost:" + url);
@@ -69,53 +74,31 @@ public class HttpUtil {
         return request;
     }
 
-    public static HttpResponse getHttpResponse(HttpGet request)
-    {
+    private static HttpResponse getHttpResponse(HttpGet request){
         HttpResponse response = null;
         try {
             HttpClient httpclient = new DefaultHttpClient();
             response = httpclient.execute(request);
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            Log.w(mTag, "getHttpResponse HttpGet---------" + e.getMessage());
         }
         return response;
     }
 
-    public static HttpResponse getHttpResponse(HttpPost request)
-    {
+    private static HttpResponse getHttpResponse(HttpPost request){
         HttpResponse response = null;
         try {
             HttpClient httpclient = new DefaultHttpClient();
             response = httpclient.execute(request);
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            Log.w(mTag,"getHttpResponse HttpPost---------" + e.getMessage());
         }
         return response;
     }
 
-//    public static HttpEntity getEntityByPost(String url, EntityBase entityBase)
-//    {
-//        HttpPost request = HttpUtil.getHttpPost(url);
-//
-//
-//        //JsonReader
-//        try {
-//            List<NameValuePair> nvps = PrepareNameValuePair(entityBase);
-//            request.setEntity(new UrlEncodedFormEntity(nvps));
-//            HttpResponse response = getHttpResponse(request);
-//
-//            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
-//                return response.getEntity();
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return null;
-//    }
-
-    public static HttpEntity getEntityByPost(String url, List<NameValuePair> nvps)
-    {
+    private static HttpEntity getEntityByPost(String url, List<NameValuePair> nvps){
         HttpPost request = HttpUtil.getHttpPost(url);
 
         //JsonReader
@@ -123,44 +106,35 @@ public class HttpUtil {
             request.setEntity(new UrlEncodedFormEntity(nvps));
             HttpResponse response = getHttpResponse(request);
 
-            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
+            if(response != null && response.getStatusLine().getStatusCode() == HttpStatus.SC_OK)
                 return response.getEntity();
 
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            Log.w(mTag, e.getMessage());
         }
 
         return null;
     }
 
-    public static JSONObject getJSONObjectByPost(String url, List<NameValuePair> nvps)
-    {
-        JSONObject resultJsonObject = null;
-        HttpEntity httpEntity = getEntityByPost(url,nvps);
+    public static void getJSONObjectByPost(String url, List<NameValuePair> nvps,IHttpResponseHandler handler){
 
-        if (httpEntity != null) {
-            try {
-                BufferedReader bufferedReader = new BufferedReader(
-                        new InputStreamReader(httpEntity.getContent(),"UTF-8"), 8 * 1024);
-                StringBuilder entityStringBuilder = new StringBuilder();
-                String line = null;
-                while ((line = bufferedReader.readLine()) != null) {
-                    entityStringBuilder.append(line + "/n");
-                }
-                // 利用从HttpEntity中得到的String生成JsonObject
-                resultJsonObject = new JSONObject(entityStringBuilder.toString());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        if (httpTask != null)
+            return;
+        httpTask = new HttpTask();
 
-        return resultJsonObject;
+        responseHandler = handler;
+
+        HKUrlParam hkUrlParam = new HKUrlParam();
+        hkUrlParam.url = url;
+        hkUrlParam.nvps = nvps;
+
+        httpTask.execute(hkUrlParam);
     }
 
-    public static JSONObject getJSONObjectByPost(String url,EntityBase entityBase)
-    {
+    public static void getJSONObjectByPost(String url,EntityBase entityBase,IHttpResponseHandler handler){
         List<NameValuePair> nvps = PrepareNameValuePair(entityBase);
-        return getJSONObjectByPost(url,nvps);
+        getJSONObjectByPost(url,nvps,handler);
 //        JSONObject resultJsonObject = null;
 //        HttpEntity httpEntity = getEntityByPost(url,entityBase);
 //
@@ -183,11 +157,10 @@ public class HttpUtil {
 //        return resultJsonObject;
     }
 
-    public static JSONObject getJSONObjectByPost(String url)
-    {
+    public static void getJSONObjectByPost(String url,IHttpResponseHandler handler){
         List<NameValuePair> nvps = new ArrayList<NameValuePair>();
 
-        return getJSONObjectByPost(url,nvps);
+        getJSONObjectByPost(url,nvps,handler);
 //        JSONObject resultJsonObject = null;
 //        HttpEntity httpEntity = getEntityByPost(url,entityBase);
 //
@@ -210,8 +183,7 @@ public class HttpUtil {
 //        return resultJsonObject;
     }
 
-    public static HttpEntity getEntityForGet(String url)
-    {
+    public static HttpEntity getEntityForGet(String url){
         HttpGet request = HttpUtil.getHttpGet(url);
 
         HttpResponse response = getHttpResponse(request);
@@ -222,8 +194,7 @@ public class HttpUtil {
         return null;
     }
 
-    public static List<NameValuePair> PrepareNameValuePair(EntityBase entityBase)
-    {
+    public static List<NameValuePair> PrepareNameValuePair(EntityBase entityBase){
         List <NameValuePair> nvps = new ArrayList<NameValuePair>();
 
         if(entityBase == null)
@@ -347,24 +318,23 @@ public class HttpUtil {
         return nvps;
     }
 
-    public static boolean isServerAvailable(Context context) {
-
-        boolean bRet = false;
-        if (isNetworkConnected(context) == false)
-            return bRet;
-
-        try {
-            JSONObject resultJsonObject = HttpUtil.getJSONObjectByPost(REQUEST_Knock_Server);
-
-            ResponseModel responseModel = JSONHelper.parseObject(resultJsonObject, ResponseModel.class);
-            if (responseModel != null && responseModel.isSuccess())
-                bRet = true;
-
-        } catch (JSONException e) {
-            LogUtil.i(e.getMessage());
-        }
-        return bRet;
-    }
+//    public static boolean isServerAvailable(Context context) {
+//
+//        boolean bRet = false;
+//        if (isNetworkConnected(context) == false)
+//            return bRet;
+//        try {
+//            JSONObject resultJsonObject = HttpUtil.getJSONObjectByPost(REQUEST_Knock_Server,null);
+//
+//            ResponseModel responseModel = JSONHelper.parseObject(resultJsonObject, ResponseModel.class);
+//            if (responseModel != null && responseModel.isSuccess())
+//                bRet = true;
+//
+//        } catch (JSONException e) {
+//            LogUtil.i(e.getMessage());
+//        }
+//        return bRet;
+//    }
 
     public static boolean isNetworkConnected(Context context) {
 
@@ -380,4 +350,57 @@ public class HttpUtil {
         return false;
     }
 
+    private static class HttpTask extends AsyncTask<HKUrlParam, Integer, JSONObject> {
+
+        @Override
+        protected JSONObject doInBackground(HKUrlParam... params) {
+
+            JSONObject resultJsonObject = null;
+
+            HKUrlParam hkUrlParam = params[0];
+
+            if (hkUrlParam == null)
+                return resultJsonObject;
+
+            HttpEntity httpEntity = getEntityByPost(hkUrlParam.url,hkUrlParam.nvps);
+
+            if (httpEntity != null) {
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(
+                            new InputStreamReader(httpEntity.getContent(),"UTF-8"), 8 * 1024);
+                    StringBuilder entityStringBuilder = new StringBuilder();
+                    String line = null;
+                    while ((line = bufferedReader.readLine()) != null) {
+                        entityStringBuilder.append(line + "/n");
+                    }
+                    // 利用从HttpEntity中得到的String生成JsonObject
+                    resultJsonObject = new JSONObject(entityStringBuilder.toString());
+                } catch (Exception e) {
+                   // e.printStackTrace();
+                    //Log.i(mTag,e.getMessage());
+                    Log.w(mTag,"HttpTask doInBackground---------" + e.getMessage());
+                }
+            }
+
+            return resultJsonObject;
+        }
+
+        @Override
+        protected void onPostExecute(JSONObject jsonObject) {
+            super.onPostExecute(jsonObject);
+
+            if (responseHandler != null)
+                responseHandler.onResponse(jsonObject);
+
+            responseHandler = null;
+            httpTask = null;
+
+        }
+
+        @Override
+        protected void onCancelled() {
+            responseHandler = null;
+            httpTask = null;
+        }
+    }
 }

@@ -29,6 +29,36 @@
                     android:textStyle="bold"
                     android:onClick="onClickLogin" />
 
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="忘记密码？"
+                        android:id="@+id/textView4"
+                        android:layout_gravity="left" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:text="没有帐号？点击注册"
+                        android:id="@+id/textView3"
+                        android:onClick="onClickRegisterUser"
+                        android:layout_gravity="right"
+                        android:focusable="false" />
+                </FrameLayout>
+
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 

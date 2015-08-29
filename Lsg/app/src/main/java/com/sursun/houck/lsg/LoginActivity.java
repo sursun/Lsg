@@ -13,6 +13,7 @@ import android.widget.EditText;
 
 import com.sursun.houck.bdapi.LBSCloudSearch;
 import com.sursun.houck.bdapi.LBSLocation;
+import com.sursun.houck.common.IHttpResponseHandler;
 import com.sursun.houck.common.LocalConfig;
 import com.sursun.houck.common.ToastUtil;
 import com.sursun.houck.dao.UserDao;
@@ -88,7 +89,19 @@ public class LoginActivity extends ActionBarActivity {
 
         UserDao userDao = new UserDao();
 
-        bRet = userDao.RegisterUser(name,psw);
+        userDao.RegisterUser(name, psw, new IHttpResponseHandler() {
+            @Override
+            public void onResponse(Object obj) {
+                boolean bRet = (boolean)obj;
+                if(bRet){
+                    ToastUtil.showMessage("创建用户成功！");
+                }else{
+                    ToastUtil.showMessage("创建失败~~~~");
+                }
+
+
+            }
+        });
         //bRet = userDao.ValidUser(name,psw);
 
 //        userDao.saveOrUpdate(mUser, new Handler(){
@@ -127,6 +140,12 @@ public class LoginActivity extends ActionBarActivity {
 
         //bRet = true;
         return bRet;
+    }
+
+    public void onClickRegisterUser(View view){
+
+        Intent intent = new Intent(LoginActivity.this, RegisterUserActivity.class);
+        startActivity(intent);
     }
 
 
