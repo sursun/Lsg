@@ -1,61 +1,36 @@
 package com.sursun.houck.lsg;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-
-import com.sursun.houck.bdapi.LBSCloudSearch;
-import com.sursun.houck.bdapi.LBSLocation;
 import com.sursun.houck.common.IHttpResponseHandler;
 import com.sursun.houck.common.LocalConfig;
-import com.sursun.houck.common.ToastUtil;
 import com.sursun.houck.dao.UserDao;
 import com.sursun.houck.domain.User;
-import com.sursun.houck.im.OnIMLoginListener;
-import com.sursun.houck.im.yuntx.YuntxConnector;
-
-import java.util.Date;
 
 public class LoginActivity extends ActionBarActivity {
 
     private EditText cMobile;
     private EditText cPassword;
 
-    private User mUser = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        //定位
-        LBSLocation.getInstance(LsgApplication.getInstance()).startLocation(true);
-
         cMobile = (EditText)findViewById(R.id.mobile);
         cPassword= (EditText)findViewById(R.id.password);
 
-        //mUser = LocalConfig.GetUser(LoginActivity.this);
-        mUser = new User();
-
-       // mUser.setLoginname();
-
         String name = LocalConfig.GetLoginName();
         String psw = LocalConfig.GetPassWord();
-//        SharedPreferences userInfo = getSharedPreferences("user_info", 0);
-//        mName = userInfo.getString("name", "");
 
-        if (mUser != null){
-            //attemptToLogin();
-            cMobile.setText(name);
-            cPassword.setText(psw);
-        }
+        cMobile.setText(name);
+        cPassword.setText(psw);
+
     }
 
     /**
@@ -67,124 +42,48 @@ public class LoginActivity extends ActionBarActivity {
         String mobile = cMobile.getText().toString();
         String password = cPassword.getText().toString();
 
-        if(mUser == null)
-            mUser = new User();
-
-        mUser.setLoginName(mobile);
-
-        attemptToLogin(mobile,password);
+        attemptToLogin(mobile, password);
     }
 
-    private boolean attemptToLogin(String name,String psw){
-
-        boolean bRet = false;
-
-        if(mUser == null)
-            return bRet;
+    private void attemptToLogin(String name,String psw){
 
         LocalConfig.SaveLoginName(name);
         LocalConfig.SavePassWord(psw);
 
-        //LocalConfig.SaveUser(LoginActivity.this, mUser);
 
         UserDao userDao = new UserDao();
 
-        userDao.RegisterUser(name, psw, new IHttpResponseHandler() {
+        userDao.ValidUser(name, psw, new IHttpResponseHandler() {
             @Override
             public void onResponse(Object obj) {
-                boolean bRet = (boolean)obj;
-                if(bRet){
-                    ToastUtil.showMessage("创建用户成功！");
-                }else{
-                    ToastUtil.showMessage("创建失败~~~~");
+                User user = (User) obj;
+                if (user != null) {
+
+                    LsgApplication.getInstance().mUser = user;
+
+                    Intent intent = new Intent(LoginActivity.this, MapActivity.class);
+
+                    LoginActivity.this.startActivity(intent);
+
+                    LoginActivity.this.finish();
                 }
-
-
             }
         });
-        //bRet = userDao.ValidUser(name,psw);
-
-//        userDao.saveOrUpdate(mUser, new Handler(){
-//            public void handleMessage(Message msg) {
-//                //progress.setVisibility(View.INVISIBLE);
-//                switch (msg.what) {
-//                    case LBSCloudSearch.MSG_NET_TIMEOUT:
-//                        ToastUtil.showMessage("创建用户时，超时！");
-//                        break;
-//                    case LBSCloudSearch.MSG_NET_STATUS_ERROR:
-//                        ToastUtil.showMessage("创建用户失败:" + msg.obj.toString());
-//                        break;
-//                    case LBSCloudSearch.MSG_NET_SUCC:
-//                        ToastUtil.showMessage("创建用户成功！");
-//                        break;
-//
-//                }
-//            }
-//        });
-
-//        YuntxConnector.getInstance().login(mUser.getMobile(), new OnIMLoginListener() {
-//            @Override
-//            public void onLoginResult(boolean success, String msg) {
-//
-//                Intent intent = new Intent(LoginActivity.this, MapActivity.class);
-//
-//                intent.putExtra("username", LoginActivity.this.mUser.getMobile());
-//                intent.putExtra("note", LoginActivity.this.mUser.getNote());
-//
-//                LoginActivity.this.startActivity(intent);
-//
-//                LoginActivity.this.finish();
-//
-//            }
-//        });
-
-        //bRet = true;
-        return bRet;
     }
-
     public void onClickRegisterUser(View view){
 
         Intent intent = new Intent(LoginActivity.this, RegisterUserActivity.class);
         startActivity(intent);
     }
 
+    public void onClickCngPsw(View view){
 
-//    @Override
-//    protected void handleReceiver(Context context, Intent intent) {
-//        //super.handleReceiver(context, intent);
-//        int error = intent.getIntExtra("error" , -1);
-//        LogUtil.d("SettingPersionInfoActivity" , "handleReceiver");
-//        if(SDKCoreHelper.ACTION_SDK_CONNECT.equals(intent.getAction())) {
-//            // 初始注册结果，成功或者失败
-//            if(SDKCoreHelper.getConnectState() == ECDevice.ECConnectState.CONNECT_SUCCESS
-//                    && error == SdkErrorCode.REQUEST_SUCCESS) {
-//
-//                dismissPostingDialog();
-//                try {
-//                    saveAccount();
-//                } catch (InvalidClassException e) {
-//                    e.printStackTrace();
-//                }
-//                ContactsCache.getInstance().load();
-//                LogUtil.d("SettingPersionInfoActivity" , "handleReceiver ok");
-//                if(IMChattingHelper.getInstance().mServicePersonVersion == 0) {
-//                    Intent settingAction = new Intent(this, SettingPersionInfoActivity.class);
-//                    settingAction.putExtra("from_regist" , true);
-//                    startActivityForResult(settingAction, 0x2a);
-//                    return ;
-//                }
-//                doLauncherAction();
-//                return ;
-//            }
-//            if(intent.hasExtra("error")) {
-//                if(SdkErrorCode.CONNECTTING == error) {
-//                    return ;
-//                }
-//                ToastUtil.showMessage("登陆失败，请稍后重试[" + error + "]");
-//            }
-//            dismissPostingDialog();
-//        }
-//    }
+        UserDao userDao = new UserDao();
+
+        String mobile = cMobile.getText().toString();
+
+        userDao.ChangePassWord(mobile, "123", null);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

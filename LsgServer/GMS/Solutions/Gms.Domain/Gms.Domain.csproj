@@ -103,7 +103,7 @@
     <Compile Include="Manager.cs" />
     <Compile Include="Task.cs" />
     <Compile Include="TaskAsk.cs" />
-    <Compile Include="TaskRespond.cs" />
+    <Compile Include="TaskApply .cs" />
     <Compile Include="UserEval.cs" />
   </ItemGroup>
   <ItemGroup>

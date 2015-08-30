@@ -4,31 +4,33 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
+import com.baidu.mapapi.model.LatLng;
+import com.sursun.houck.common.LogUtil;
 import com.sursun.houck.lsg.LsgApplication;
 
 /**
  * Created by houck on 2015/8/25.
  */
 public class LBSLocation {
-    private static LBSLocation location = null;
-    private static LsgApplication app = null;
 
-    private MyLocationListenner myListener = new MyLocationListenner();
+    private MyLocationListenner myListener = null;
     private LocationClient mLocationClient = null;
     private HKLocationListener hkLocationListener = null;
     private boolean mIsOnce = true;
 
-    public static LBSLocation getInstance(LsgApplication application) {
-        app = application;
+    private static LBSLocation location = null;
+    public static LBSLocation getInstance() {
+
         if (location == null) {
-            location = new LBSLocation(app);
+            location = new LBSLocation();
         }
 
         return location;
     }
 
-    private LBSLocation(LsgApplication app) {
-        mLocationClient = new LocationClient(app);
+    private LBSLocation() {
+        myListener = new MyLocationListenner();
+        mLocationClient = new LocationClient(LsgApplication.getInstance());
         mLocationClient.registerLocationListener(myListener);
         mLocationClient.start();
     }
@@ -44,7 +46,10 @@ public class LBSLocation {
     /**
      * 开始定位请求，结果在回调中
      */
+
     public void startLocation(boolean isOnce) {
+
+        LogUtil.w("startLocation");
 
         this.mIsOnce = isOnce;
 
@@ -60,6 +65,9 @@ public class LBSLocation {
         mLocationClient.setLocOption(option);
         mLocationClient.requestLocation();
     }
+    public void stopLocation() {
+        mLocationClient.stop();
+    }
 
     /**
      * 监听函数，有新位置的时候，格式化成字符串，输出到屏幕中
@@ -69,7 +77,9 @@ public class LBSLocation {
         public void onReceiveLocation(BDLocation location) {
             if (location == null)
                 return;
-            app.currlocation = location;
+
+            LsgApplication.getInstance().curLocation = location;
+            LsgApplication.getInstance().ptCurLocation = new LatLng(location.getLatitude(), location.getLongitude());
 
             if(mIsOnce){
                 mLocationClient.stop();

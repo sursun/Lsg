@@ -60,6 +60,9 @@ import com.baidu.mapapi.search.geocode.OnGetGeoCoderResultListener;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeOption;
 import com.baidu.mapapi.search.geocode.ReverseGeoCodeResult;
 import com.baidu.mapapi.utils.DistanceUtil;
+import com.sursun.houck.bdapi.HKLocationListener;
+import com.sursun.houck.bdapi.LBSLocation;
+import com.sursun.houck.common.LogUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,7 +70,7 @@ import java.util.List;
 import java.util.Random;
 
 
-public class MapActivity extends Activity implements RadarUploadInfoCallback,RadarSearchListener,BaiduMap.OnMapStatusChangeListener,BDLocationListener,BaiduMap.OnMarkerClickListener, BaiduMap.OnMapClickListener{
+public class MapActivity extends Activity implements RadarUploadInfoCallback,RadarSearchListener,HKLocationListener,BaiduMap.OnMapStatusChangeListener,BaiduMap.OnMarkerClickListener, BaiduMap.OnMapClickListener{
 
     //
     //程序运行相关
@@ -104,11 +107,9 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private boolean isInfoWindowShow = false;
 
     /* 定位相关 */
-    private LocationClient mLocClient;
     private int pageIndex = 0;
     private int curPage = 0;
     private int totalPage = 0;
-    private LatLng ptUserLoc = null;
     private boolean isFirstLoc = true;
     private LatLng ptMapCenter = null;
     GeoCoder mGeoSearch = GeoCoder.newInstance();
@@ -127,20 +128,12 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     private RadarResultListAdapter mResultListAdapter = null;
     private boolean bUploadRadarInfoStopped = true;//指示自动上传用雷达信息，是否停止
     private int radarRadius = 1000;
-    private String userId;
-    private String userDes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-       // SDKInitializer.initialize(this);
         setContentView(R.layout.activity_map);
-
-        //获取传过来的参数
-        Intent intent = getIntent();
-        userId = intent.getStringExtra("username");
-        userDes = intent.getStringExtra("note");
 
         //获取地理位置编码监听
         this.mGeoSearch.setOnGetGeoCodeResultListener(this.getGeoCoderResultListener);
@@ -148,22 +141,16 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         //初始化UI和地图
         initUI();
 
+        // 定位初始化
+        LBSLocation.getInstance().registerLocationListener(this);
+        LBSLocation.getInstance().startLocation(false);
+
         //周边雷达设置监听
         mRadarManager = RadarSearchManager.getInstance();
         mRadarManager.addNearbyInfoListener(this);
 
         //周边雷达设置用户，id为空默认是设备标识
         startUpLoadRadarInfo();
-
-        // 定位初始化
-        mLocClient = new LocationClient(getApplicationContext());
-        mLocClient.registerLocationListener(this);
-        LocationClientOption option = new LocationClientOption();
-        option.setOpenGps(true);// 打开gps
-        option.setCoorType("bd09ll"); // 设置坐标类型
-        option.setScanSpan(1000);
-        mLocClient.setLocOption(option);
-        mLocClient.start();
 
         //定时获取周边信息
         handlerSearchNearby = new Handler();
@@ -179,7 +166,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     private void initUI() {
 
-        Log.w("MapActivity","initUI------------------W");
+        LogUtil.w("MapActivity","initUI");
 
         mPager = (CustomViewPager) findViewById(R.id.viewpager);
         listViews = new ArrayList<View>();
@@ -231,7 +218,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
     private void startUpLoadRadarInfo(){
 
-        mRadarManager.setUserID(userId);
+        mRadarManager.setUserID(LsgApplication.getInstance().mUser.getLoginName());
 
         this.bUploadRadarInfoStopped = false;
 
@@ -382,14 +369,18 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     public RadarUploadInfo OnUploadInfoCallback() {
 
         if(bUploadRadarInfoStopped) {
-            Log.e("MapActivity", "OnUploadInfoCallback  UploadRadarInfoStopped");
+           // Log.e("MapActivity", "OnUploadInfoCallback  UploadRadarInfoStopped");
             return null;
         }
 
+        //成功定位后，才进行自动上传
+        if(!isFirstLoc)
+            return null;
+
         RadarUploadInfo info = new RadarUploadInfo();
-        info.comments = this.userId;//+ this.userDes;
-        info.pt = ptUserLoc;
-        Log.e("MapActivity", "OnUploadInfoCallback");
+        info.comments = LsgApplication.getInstance().mUser.getLoginName();//+ this.userDes;
+        info.pt = LsgApplication.getInstance().ptCurLocation;
+       // Log.e("MapActivity", "OnUploadInfoCallback");
         return info;
     }
 
@@ -467,8 +458,6 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
             return;
         }
 
-        ptUserLoc = new LatLng(location.getLatitude(), location.getLongitude());
-
         MyLocationData locData = new MyLocationData.Builder()
                 .accuracy(location.getRadius())
                         // 此处设置开发者获取到的方向信息，顺时针0-360
@@ -485,7 +474,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
                 isFirstLoc = false;
 
-                this.ptMapCenter = ptUserLoc;
+                this.ptMapCenter = LsgApplication.getInstance().ptCurLocation;
 
                 mapToLocation(18);
 
@@ -688,11 +677,13 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         }
     }
 
+    //个人信息
     public void onMyInfoClick(View v){
         Intent intent = new Intent(MapActivity.this, SettingsActivity.class);
         startActivity(intent);
     }
 
+    //发布任务
     public void onSendMessageClick(View v){
         Intent intent = new Intent(MapActivity.this, SendMessageActivity.class);
         startActivity(intent);
@@ -704,6 +695,9 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     private void mapToLocation(float zoom) {
+
+        LatLng ptUserLoc = LsgApplication.getInstance().ptCurLocation;
+
         if (ptUserLoc != null) {
 
             MapStatus mapStatus = new MapStatus.Builder()
@@ -800,7 +794,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         handlerSearchNearby.removeCallbacks(runnableSearchNearby);
 
         // 退出时销毁定位
-        mLocClient.stop();
+        LBSLocation.getInstance().stopLocation();
 
         //释放周边雷达相关
         mRadarManager.removeNearbyInfoListener(this);
@@ -816,6 +810,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
         Log.w("MapActivity","onDestroy");
         super.onDestroy();
     }
+
     @Override
     protected void onResume() {
 
@@ -824,6 +819,7 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
 
         super.onResume();
     }
+
     @Override
     protected void onPause() {
 

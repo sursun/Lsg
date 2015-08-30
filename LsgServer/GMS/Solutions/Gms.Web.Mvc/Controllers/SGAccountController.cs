@@ -172,58 +172,7 @@ namespace Gms.Web.Mvc.Controllers
             
             return JsonError("用户名或密码不正确！");
         }
-
-    
-        //[HttpPost]
-        [Transaction]
-        public ActionResult RegisterUser(string mobile, string psw)
-        {
-            try
-            {
-                string strUserName = mobile.Trim();
-
-                MembershipUser membershipuser = Membership.GetUser(strUserName);
-
-                if (membershipuser != null)
-                {
-                    throw new Exception("该手机号已经注册!");
-                }
-
-                membershipuser = Membership.CreateUser(strUserName, psw);
-
-                User user = new User();
-                user.LoginName = mobile;
-                user.Mobile = mobile;
-                user.MemberShipId = (Guid) membershipuser.ProviderUserKey;
-                
-                user = this.UserRepository.SaveOrUpdate(user);
-
-                return JsonSuccess(user);
-            }
-            catch (Exception ex)
-            {
-                return JsonError(ex.Message);
-            }
-        }
-
-        [Transaction]
-        public ActionResult UpdateUserInfo(User user)
-        {
-            try
-            {
-                user = this.UserRepository.Get(user.Id);
-
-                TryUpdateModel(user);
-
-                user = this.UserRepository.SaveOrUpdate(user);
-
-                return JsonSuccess(user);
-            }
-            catch (Exception ex)
-            {
-                return JsonError(ex.Message);
-            }
-        }
+      
 
         #endregion
 

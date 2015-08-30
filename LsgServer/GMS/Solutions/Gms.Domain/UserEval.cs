@@ -13,12 +13,17 @@ namespace Gms.Domain
     public class UserEval : Entity
     {
         /// <summary>
+        /// 每个任务对应一条评价
+        /// </summary>
+        public virtual Task Task { get; set; }
+
+        /// <summary>
         /// 被评价人
         /// </summary>
         public virtual User ToUser { get; set; }
 
         /// <summary>
-        /// 任务角色
+        /// 被评价人的任务角色
         /// </summary>
         public virtual UserRole UserRole { get; set; }
 

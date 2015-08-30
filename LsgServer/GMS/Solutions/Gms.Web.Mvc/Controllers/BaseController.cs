@@ -18,6 +18,10 @@ namespace Gms.Web.Mvc.Controllers
     public class BaseController : Controller
     {
         public IUserRepository UserRepository { get; set; }
+        public IUserEvalRepository UserEvalRepository { get; set; }
+        public ITaskRepository TaskRepository { get; set; }
+        public ITaskApplyRepository TaskApplyRepository { get; set; }
+        public ITaskAskRepository TaskAskRepository { get; set; }
         public IManagerRepository ManagerRepository { get; set; }
         public IDepartmentRepository DepartmentRepository { get; set; }
         public ICommonCodeRepository CommonCodeRepository { get; set; }

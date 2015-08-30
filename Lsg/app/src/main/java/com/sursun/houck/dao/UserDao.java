@@ -1,6 +1,5 @@
 package com.sursun.houck.dao;
 
-import android.os.AsyncTask;
 
 import com.sursun.houck.common.HttpUtil;
 import com.sursun.houck.common.IHttpResponseHandler;
@@ -23,8 +22,11 @@ import java.util.List;
  */
 public class UserDao {
 
-    private final String User_Register = "/SGAccount/RegisterUser";
+    private final String User_Register = "/User/Register";
     private final String REQUEST_Login = "/SGAccount/AndroidLogin";
+    private final String REQUEST_ChangePassWord = "/User/CngPsw";
+    private final String User_Eval_Add = "/User/Eval";
+    private final String User_Eval_List = "/User/EvalList";
 
     public void RegisterUser(final String mobile, final String psw, final IHttpResponseHandler handler){
 
@@ -71,17 +73,13 @@ public class UserDao {
                         if(userModel.isSuccess()){
                             usr = userModel.getData();
                         }else{
-
                             ErrorModel errorModel =JSONHelper.parseObject((JSONObject) obj, ErrorModel.class);
                             ToastUtil.showMessage(errorModel.getData());
                         }
-
                     }
-
-
-
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
+
                 }
 
                 if(handler != null)
@@ -91,28 +89,73 @@ public class UserDao {
 
 
     }
-//
-//    public boolean ChangePassWord(String strUserName,String strOld,String strNew){
-//        boolean bRet = false;
-//
-//        User usr = new User();
-////        usr.setName(strUserName);
-////        usr.setPassWord(strOld);
-////        usr.setNewPassWord(strNew);
-//
-//        JSONObject resultJsonObject = HttpUtil.getJSONObjectByPost(HttpUtil.REQUEST_ChangePassWord, usr);
-//
-//        try {
-//            UserModel userModel = JSONHelper.parseObject(resultJsonObject, UserModel.class);
-//            if (userModel != null && userModel.isSuccess())
-//                bRet = true;
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return bRet;
-//    }
+
+    public void ChangePassWord(final String loginName, final String passWord, final IHttpResponseHandler handler){
+
+        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+
+        nvps.add(new BasicNameValuePair("name",loginName));
+        nvps.add(new BasicNameValuePair("psw",passWord));
+
+        HttpUtil.getJSONObjectByPost(REQUEST_ChangePassWord, nvps, new IHttpResponseHandler() {
+            @Override
+            public void onResponse(Object obj) {
+
+                boolean bRet = false;
+                try {
+                    ErrorModel errorModel = JSONHelper.parseObject((JSONObject)obj, ErrorModel.class);
+                    if (errorModel != null ){
+                        if(errorModel.isSuccess())
+                            bRet= true;
+                        ToastUtil.showMessage(errorModel.getData());
+                    }
+                } catch (JSONException e) {
+                    //e.printStackTrace();
+
+                }
+
+                if(handler != null)
+                    handler.onResponse(bRet);
+            }
+        });
 
 
+    }
+
+
+    public void AddEval(final String loginNameFrom,final String loginNameTo, int taskid,String content,int level, final IHttpResponseHandler handler){
+
+        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+
+        nvps.add(new BasicNameValuePair("name",loginName));
+        nvps.add(new BasicNameValuePair("psw",passWord));
+
+        HttpUtil.getJSONObjectByPost(REQUEST_Login, nvps, new IHttpResponseHandler() {
+            @Override
+            public void onResponse(Object obj) {
+                User usr = null;
+                try {
+                    UserModel userModel = JSONHelper.parseObject((JSONObject)obj, UserModel.class);
+                    if (userModel != null ){
+
+                        if(userModel.isSuccess()){
+                            usr = userModel.getData();
+                        }else{
+                            ErrorModel errorModel =JSONHelper.parseObject((JSONObject) obj, ErrorModel.class);
+                            ToastUtil.showMessage(errorModel.getData());
+                        }
+                    }
+                } catch (JSONException e) {
+                    //e.printStackTrace();
+
+                }
+
+                if(handler != null)
+                    handler.onResponse(usr);
+            }
+        });
+
+
+    }
 
 }

@@ -7,7 +7,10 @@ using SharpArch.Domain.DomainModel;
 
 namespace Gms.Domain
 {
-    public class TaskRespond : Entity
+    /// <summary>
+    /// 任务申请
+    /// </summary>
+    public class TaskApply: Entity
     {
         /// <summary>
         /// 任务
@@ -40,7 +43,7 @@ namespace Gms.Domain
         public virtual DateTime CreateTime { get; set; }
     }
 
-    public class TaskRespondQuery : QueryBase
+    public class TaskApplyQuery : QueryBase
     {
         /// <summary>
         /// 任务

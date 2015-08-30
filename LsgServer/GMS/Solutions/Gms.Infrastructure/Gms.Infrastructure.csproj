@@ -132,6 +132,14 @@
     <Compile Include="ManagerRepository.cs" />
     <Compile Include="IUserRepository.cs" />
     <Compile Include="UserRepository.cs" />
+    <Compile Include="ITaskRepository.cs" />
+    <Compile Include="TaskRepository.cs" />
+    <Compile Include="ITaskAskRepository.cs" />
+    <Compile Include="TaskAskRepository.cs" />
+    <Compile Include="ITaskApplyRepository.cs" />
+    <Compile Include="TaskApplyRepository.cs" />
+    <Compile Include="IUserEvalRepository.cs" />
+    <Compile Include="UserEvalRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Gms.Common\Gms.Common.csproj">
