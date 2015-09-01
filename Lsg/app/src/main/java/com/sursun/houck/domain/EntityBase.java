@@ -16,7 +16,7 @@ public class EntityBase implements IEntityBase {
         Id = id;
     }
 
-    protected int Id;
+    public int Id;
 
 
 }

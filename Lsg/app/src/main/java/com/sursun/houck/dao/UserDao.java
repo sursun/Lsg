@@ -42,9 +42,9 @@ public class UserDao {
                 try {
                     UserModel userModel = JSONHelper.parseObject((JSONObject)obj, UserModel.class);
                     if (userModel != null && userModel.isSuccess()){
-
-                    }
                         bRet = true;
+                    }
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -123,39 +123,39 @@ public class UserDao {
     }
 
 
-    public void AddEval(final String loginNameFrom,final String loginNameTo, int taskid,String content,int level, final IHttpResponseHandler handler){
-
-        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-
-        nvps.add(new BasicNameValuePair("name",loginName));
-        nvps.add(new BasicNameValuePair("psw",passWord));
-
-        HttpUtil.getJSONObjectByPost(REQUEST_Login, nvps, new IHttpResponseHandler() {
-            @Override
-            public void onResponse(Object obj) {
-                User usr = null;
-                try {
-                    UserModel userModel = JSONHelper.parseObject((JSONObject)obj, UserModel.class);
-                    if (userModel != null ){
-
-                        if(userModel.isSuccess()){
-                            usr = userModel.getData();
-                        }else{
-                            ErrorModel errorModel =JSONHelper.parseObject((JSONObject) obj, ErrorModel.class);
-                            ToastUtil.showMessage(errorModel.getData());
-                        }
-                    }
-                } catch (JSONException e) {
-                    //e.printStackTrace();
-
-                }
-
-                if(handler != null)
-                    handler.onResponse(usr);
-            }
-        });
-
-
-    }
+//    public void AddEval(final String loginNameFrom,final String loginNameTo, int taskid,String content,int level, final IHttpResponseHandler handler){
+//
+//        List<NameValuePair> nvps = new ArrayList<NameValuePair>();
+//
+//        nvps.add(new BasicNameValuePair("name",loginName));
+//        nvps.add(new BasicNameValuePair("psw",passWord));
+//
+//        HttpUtil.getJSONObjectByPost(REQUEST_Login, nvps, new IHttpResponseHandler() {
+//            @Override
+//            public void onResponse(Object obj) {
+//                User usr = null;
+//                try {
+//                    UserModel userModel = JSONHelper.parseObject((JSONObject)obj, UserModel.class);
+//                    if (userModel != null ){
+//
+//                        if(userModel.isSuccess()){
+//                            usr = userModel.getData();
+//                        }else{
+//                            ErrorModel errorModel =JSONHelper.parseObject((JSONObject) obj, ErrorModel.class);
+//                            ToastUtil.showMessage(errorModel.getData());
+//                        }
+//                    }
+//                } catch (JSONException e) {
+//                    //e.printStackTrace();
+//
+//                }
+//
+//                if(handler != null)
+//                    handler.onResponse(usr);
+//            }
+//        });
+//
+//
+//    }
 
 }

@@ -23,7 +23,7 @@ public class RegisterUserActivity extends AppCompatActivity {
         mInstance = this;
     }
 
-    public void onClickLogin(View v) {
+    public void onClickRegister(View v) {
 
         EditText cMobile = (EditText)findViewById(R.id.editTextMobile);
         EditText cPsw1 = (EditText)findViewById(R.id.editTextPsw1);

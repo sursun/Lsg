@@ -285,7 +285,7 @@ public class JSONHelper {
                     continue;
                 }
                 Method fieldGetMet = cls.getMethod(fieldGetName, new Class[] {});
-                Object fieldVal = fieldGetMet.invoke(obj, new Object[] {});
+                Object fieldVal = fieldGetMet.invoke(obj, new Object[]{});
                 String result = null;
                 if ("Date".equals(fieldType)) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.CHINA);
@@ -320,7 +320,9 @@ public class JSONHelper {
                     fieldSetMethod.invoke(obj, value.toString());
                 } else if ("Date".equals(fieldType)) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.CHINA);
-                    Date temp = sdf.parse(value.toString());
+                    String strTmp = value.toString();
+                    strTmp = strTmp.replace("/Date(", "").replace(")/", "");
+                    Date temp = sdf.parse(strTmp);
                     fieldSetMethod.invoke(obj, temp);
                 } else if ("Integer".equals(fieldType)
                         || "int".equals(fieldType)) {
@@ -384,6 +386,7 @@ public class JSONHelper {
                     e.printStackTrace();
                 }
             }
+
 
             Method[] methods = clazz.getMethods();
             Field[] fields = clazz.getFields();
@@ -651,7 +654,12 @@ public class JSONHelper {
                 if (o != null) {
                     setFiedlValue(obj, fieldSetMethod, clazz.getSimpleName(), o);
                 }
-            } else if (isObject(clazz)) { // 对象
+            }else  if (isDate(clazz)) { // Date类型
+                Object o = jo.opt(name);
+                if (o != null) {
+                    setFiedlValue(obj, fieldSetMethod, clazz.getSimpleName(), o);
+                }
+            }else if (isObject(clazz)) { // 对象
                 JSONObject j = jo.optJSONObject(name);
                 if (!isNull(j)) {
                     Object o = parseObject(j, clazz);
@@ -707,6 +715,12 @@ public class JSONHelper {
                     field.set(obj, o);
                 }
             } else if (isSingle(clazz)) { // 值类型
+                Object o = jo.opt(name);
+                if (o != null) {
+                    field.set(obj, o);
+                }
+            }
+            else if (isDate(clazz)) { // 日期类型
                 Object o = jo.opt(name);
                 if (o != null) {
                     field.set(obj, o);
@@ -796,7 +810,7 @@ public class JSONHelper {
      * @return
      */
     private static boolean isObject(Class<?> clazz) {
-        return clazz != null && !isSingle(clazz) && !isArray(clazz) && !isCollection(clazz) && !isMap(clazz);
+        return clazz != null && !isSingle(clazz) && !isArray(clazz) && !isCollection(clazz) && !isMap(clazz) && !isDate(clazz);
     }
 
     /**
@@ -833,5 +847,14 @@ public class JSONHelper {
      */
     public static boolean isList(Class<?> clazz) {
         return clazz != null && List.class.isAssignableFrom(clazz);
+    }
+
+    /**
+     * 判断是否是列表
+     * @param clazz
+     * @return
+     */
+    public static boolean isDate(Class<?> clazz) {
+        return clazz != null && Date.class.isAssignableFrom(clazz);
     }
 }

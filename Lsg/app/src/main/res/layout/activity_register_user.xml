@@ -71,7 +71,8 @@
             android:layout_height="wrap_content"
             android:text="立即注册"
             android:id="@+id/btnRegister"
-            android:layout_gravity="center_horizontal" />
+            android:layout_gravity="center_horizontal"
+            android:onClick="onClickRegister" />
 
 
     </LinearLayout>
