@@ -320,9 +320,9 @@ public class JSONHelper {
                     fieldSetMethod.invoke(obj, value.toString());
                 } else if ("Date".equals(fieldType)) {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.CHINA);
-                    String strTmp = value.toString();
-                    strTmp = strTmp.replace("/Date(", "").replace(")/", "");
-                    Date temp = sdf.parse(strTmp);
+//                    String strTmp = value.toString();
+//                    strTmp = strTmp.replace("/Date(", "").replace(")/", "");
+                    Date temp = sdf.parse(value.toString());
                     fieldSetMethod.invoke(obj, temp);
                 } else if ("Integer".equals(fieldType)
                         || "int".equals(fieldType)) {

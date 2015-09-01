@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using Gms.Common;
 using Gms.Domain;
 using SharpArch.NHibernate.Web.Mvc;
 
@@ -37,7 +38,7 @@ namespace Gms.Web.Mvc.Controllers
 
                 task = TaskRepository.SaveOrUpdate(task);
 
-                return JsonSuccess(task);
+                return JsonSuccess(TaskModel.From(task));
             }
             catch (Exception ex)
             {
@@ -77,7 +78,7 @@ namespace Gms.Web.Mvc.Controllers
                 
                 task = TaskRepository.SaveOrUpdate(task);
 
-                return JsonSuccess(task);
+                return JsonSuccess(TaskModel.From(task));
             }
             catch (Exception ex)
             {
@@ -95,7 +96,7 @@ namespace Gms.Web.Mvc.Controllers
         {
             Task task = TaskRepository.Get(id);
 
-            return JsonSuccess(task);
+            return JsonSuccess(TaskModel.From(task));
         }
 
         /// <summary>
@@ -124,12 +125,12 @@ namespace Gms.Web.Mvc.Controllers
 
             taskAsk = TaskAskRepository.SaveOrUpdate(taskAsk);
 
-            return JsonSuccess(taskAsk);
+            return JsonSuccess(TaskAskModel.From(taskAsk));
         }
 
         public ActionResult AskList(int taskid)
         {
-            var list = TaskAskRepository.GetAll(taskid);
+            var list = TaskAskRepository.GetAll(taskid).Select(c=>TaskAskModel.From(c));
 
             return JsonSuccess(list);
         }
@@ -159,12 +160,12 @@ namespace Gms.Web.Mvc.Controllers
 
             taskApply = TaskApplyRepository.SaveOrUpdate(taskApply);
 
-            return JsonSuccess(taskApply);
+            return JsonSuccess(TaskApplyModel.From(taskApply));
         }
 
         public ActionResult ApplyList(int taskid)
         {
-            var list = TaskApplyRepository.GetAll(taskid);
+            var list = TaskApplyRepository.GetAll(taskid).Select(c => TaskApplyModel.From(c));
 
             return JsonSuccess(list);
         }
@@ -190,7 +191,7 @@ namespace Gms.Web.Mvc.Controllers
 
             taskApply = TaskApplyRepository.SaveOrUpdate(taskApply);
 
-            return JsonSuccess(taskApply);
+            return JsonSuccess(TaskApplyModel.From(taskApply));
         }
 
         /// <summary>
@@ -201,10 +202,169 @@ namespace Gms.Web.Mvc.Controllers
         public ActionResult List(TaskQuery query)
         {
             var list = this.TaskRepository.GetList(query);
+            var data = list.Data.Select(c => TaskModel.From(c));
 
-            return JsonSuccess(list.Data);
+            return JsonSuccess(data);
         }
 
 
     }
+
+    public class TaskModel
+    {
+        public TaskModel(Task task)
+        {
+            this.Id = task.Id;
+            if (task.User != null)
+            {
+                this.UserId = task.User.Id;
+                this.UserLoginName = task.User.LoginName;
+            }
+
+            this.Content = task.Content;
+            this.Status = task.Status.ToString();
+            this.Duration = task.Duration;
+            this.CreateTime = task.CreateTime.ToJsonString();
+        }
+
+        public int Id { get; set; }
+
+        /// <summary>
+        /// 发布人
+        /// </summary>
+        public int UserId { get; set; }
+        public String UserLoginName { get; set; }
+
+        /// <summary>
+        /// 内容
+        /// </summary>
+        public String Content { get; set; }
+
+        /// <summary>
+        /// 任务状态
+        /// </summary>
+        public String Status { get; set; }
+
+        /// <summary>
+        /// 持续时间
+        /// </summary>
+        public int Duration { get; set; }
+
+        /// <summary>
+        /// 时间
+        /// </summary>
+        public String CreateTime { get; set; }
+
+        public static TaskModel From(Task task)
+        {
+            return new TaskModel(task);
+        }
+    }
+
+    public class TaskAskModel
+    {
+        public TaskAskModel(TaskAsk taskAsk)
+        {
+            this.Id = taskAsk.Id;
+            if (taskAsk.Task != null)
+                this.TaskId = taskAsk.Id;
+            if (taskAsk.User != null)
+            {
+                this.UserId = taskAsk.Id;
+                this.UserLoginName = taskAsk.User.LoginName;
+            }
+            this.Content = taskAsk.Content;
+            this.CreateTime = taskAsk.CreateTime.ToJsonString();
+        }
+
+        public int Id { get; set; }
+
+        /// <summary>
+        /// 任务
+        /// </summary>
+        public int TaskId { get; set; }
+
+        /// <summary>
+        /// 咨询人
+        /// </summary>
+        public int UserId { get; set; }
+        public String UserLoginName { get; set; }
+
+        /// <summary>
+        /// 咨询内容
+        /// </summary>
+        public String Content { get; set; }
+
+        /// <summary>
+        /// 时间
+        /// </summary>
+        public String CreateTime { get; set; }
+
+        public static TaskAskModel From(TaskAsk taskAsk)
+        {
+            return new TaskAskModel(taskAsk);
+        }
+
+    }
+
+    public class TaskApplyModel
+    {
+        public TaskApplyModel(TaskApply taskApply)
+        {
+            this.Id = taskApply.Id;
+            if (taskApply.Task != null)
+                this.TaskId = taskApply.Task.Id;
+
+            if (taskApply.User != null)
+            {
+                this.UserId = taskApply.User.Id;
+                this.UserLoginName = taskApply.User.LoginName;
+            }
+
+            this.AuditReason = taskApply.AuditReason;
+            this.AuditTime = taskApply.AuditTime.ToJsonString();
+            this.Status = taskApply.Status.ToString();
+            this.CreateTime = taskApply.CreateTime.ToJsonString();
+        }
+
+        public int Id { get; set; }
+        
+        /// <summary>
+        /// 任务
+        /// </summary>
+        public int TaskId { get; set; }
+
+        /// <summary>
+        /// 申请人
+        /// </summary>
+        public int UserId { get; set; }
+        public String UserLoginName { get; set; }
+
+        /// <summary>
+        /// 审核理由
+        /// </summary>
+        public String AuditReason { get; set; }
+
+        /// <summary>
+        /// 审核时间
+        /// </summary>
+        public String AuditTime { get; set; }
+
+        /// <summary>
+        /// 审核状态
+        /// </summary>
+        public String Status { get; set; }
+
+        /// <summary>
+        /// 时间
+        /// </summary>
+        public String CreateTime { get; set; }
+
+        public static TaskApplyModel From(TaskApply taskApply)
+        {
+            return new TaskApplyModel(taskApply);
+        }
+
+    }
+
 }

@@ -7,73 +7,101 @@ import java.util.Date;
  */
 public class UserEval extends EntityBase {
 
+    public int getTaskId() {
+        return TaskId;
+    }
+
+    public void setTaskId(int taskId) {
+        TaskId = taskId;
+    }
+
     public int getToUserId() {
-        return toUserId;
+        return ToUserId;
     }
 
     public void setToUserId(int toUserId) {
-        this.toUserId = toUserId;
+        ToUserId = toUserId;
     }
 
-    public int getType() {
-        return type;
+    public String getToUserLoginName() {
+        return ToUserLoginName;
     }
 
-    public void setType(int type) {
-        this.type = type;
+    public void setToUserLoginName(String toUserLoginName) {
+        ToUserLoginName = toUserLoginName;
+    }
+
+    public String getUserRole() {
+        return UserRole;
+    }
+
+    public void setUserRole(String userRole) {
+        UserRole = userRole;
     }
 
     public String getContent() {
-        return content;
+        return Content;
     }
 
     public void setContent(String content) {
-        this.content = content;
+        Content = content;
     }
 
     public int getFromUserId() {
-        return fromUserId;
+        return FromUserId;
     }
 
     public void setFromUserId(int fromUserId) {
-        this.fromUserId = fromUserId;
+        FromUserId = fromUserId;
+    }
+
+    public String getFromUserLoginName() {
+        return FromUserLoginName;
+    }
+
+    public void setFromUserLoginName(String fromUserLoginName) {
+        FromUserLoginName = fromUserLoginName;
     }
 
     public int getLevel() {
-        return level;
+        return Level;
     }
 
     public void setLevel(int level) {
-        this.level = level;
+        Level = level;
     }
 
     public Date getCreateTime() {
-        return createTime;
+        return CreateTime;
     }
 
     public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+        CreateTime = createTime;
     }
 
+    private int TaskId;
+
     //被评价人
-    private int toUserId;
+    private int ToUserId;
+    private String ToUserLoginName;
 
     //评价类型（雇主、雇员）
     //0：雇员
     //1：雇主
-    private int type;
+    private String UserRole;
 
     //内容
-    private String content;
+    private String Content;
 
     //评价人
-    private int fromUserId;
+    private int FromUserId;
+    private String FromUserLoginName;
 
     //评价星级
-    private int level;
+    private int Level;
 
     //评价时间
-    private Date createTime;
+    private Date CreateTime;
 
 
 }

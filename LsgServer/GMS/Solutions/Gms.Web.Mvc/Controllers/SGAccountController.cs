@@ -167,7 +167,12 @@ namespace Gms.Web.Mvc.Controllers
                     return JsonError("无法识别该用户");
                 }
 
-                return JsonSuccess(user);
+                if (user.Enabled == Enabled.禁用)
+                {
+                    return JsonError("用户已被禁用");
+                }
+
+                return JsonSuccess(UserModel.From(user));
             }
             
             return JsonError("用户名或密码不正确！");

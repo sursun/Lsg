@@ -4,9 +4,9 @@ import java.util.Date;
 
 /**
  * Created by houck on 2015/8/17.
- * 任务咨询
+ * 任务申请
  */
-public class TaskAsk extends EntityBase {
+public class TaskApply extends EntityBase {
 
     public int getTaskId() {
         return TaskId;
@@ -32,12 +32,28 @@ public class TaskAsk extends EntityBase {
         UserLoginName = userLoginName;
     }
 
-    public String getContent() {
-        return Content;
+    public String getAuditReason() {
+        return AuditReason;
     }
 
-    public void setContent(String content) {
-        Content = content;
+    public void setAuditReason(String auditReason) {
+        AuditReason = auditReason;
+    }
+
+    public Date getAuditTime() {
+        return AuditTime;
+    }
+
+    public void setAuditTime(Date auditTime) {
+        AuditTime = auditTime;
+    }
+
+    public int getStatus() {
+        return Status;
+    }
+
+    public void setStatus(int status) {
+        Status = status;
     }
 
     public Date getCreateTime() {
@@ -51,14 +67,20 @@ public class TaskAsk extends EntityBase {
     //所属任务
     private int TaskId;
 
-    //咨询人
+    // 申请人
     private int UserId;
     private String UserLoginName;
 
-    //咨询内容
-    private String Content;
+    // 审核理由
+    private String AuditReason;
 
-    //咨询时间
+    // 审核时间
+    private Date AuditTime;
+
+    // 审核状态
+    // 0：等待审核 1：审核通过 2：拒绝
+    private int Status;
+
+    // 申请时间
     private Date CreateTime;
-
 }

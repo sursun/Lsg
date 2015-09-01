@@ -44,9 +44,9 @@ import java.util.ListIterator;
 public class HttpUtil {
     private static String mTag="HttpUtil";
 
-    //public static final String BASE_URL = "http://10.0.2.2:51949";
+    public static final String BASE_URL = "http://10.0.2.2:51949";
     //public static final String BASE_URL = "http://192.168.0.101:8222";
-    private static final String BASE_URL = "http://1.1.1.4:8122";
+    //private static final String BASE_URL = "http://1.1.1.4:8122";
     //private static final String BASE_URL = "http://192.168.0.112:51949";
 
     private static final String REQUEST_Knock_Server = "/SGAccount/TestConnect";

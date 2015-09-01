@@ -2,6 +2,8 @@
 using System.Drawing;
 using System.Linq;
 using System.Web.Security;
+using Castle.Components.DictionaryAdapter.Xml;
+using Gms.Common;
 using Gms.Domain;
 using SharpArch.NHibernate.Web.Mvc;
 
@@ -40,7 +42,7 @@ namespace Gms.Web.Mvc.Controllers
 
                 user = this.UserRepository.SaveOrUpdate(user);
 
-                return JsonSuccess(user);
+                return JsonSuccess(UserModel.From(user));
             }
             catch (Exception ex)
             {
@@ -95,7 +97,7 @@ namespace Gms.Web.Mvc.Controllers
 
                 user = this.UserRepository.SaveOrUpdate(user);
 
-                return JsonSuccess(user);
+                return JsonSuccess(UserModel.From(user));
             }
             catch (Exception ex)
             {
@@ -103,29 +105,25 @@ namespace Gms.Web.Mvc.Controllers
             }
         }
 
+        #region 用户评价
         /// <summary>
         /// 用户评价
         /// </summary>
-        /// <param name="from"></param>
-        /// <param name="to"></param>
-        /// <param name="taskid"></param>
-        /// <param name="content"></param>
-        /// <param name="level"></param>
         /// <returns></returns>
         [Transaction]
-        public ActionResult Eval(string from,string to,int taskid,string content,int level)
+        public ActionResult Eval(UserEvalModel eval)
         {
             try
             {
-                Task task = TaskRepository.Get(taskid);
+                Task task = TaskRepository.Get(eval.TaskId);
                 if (task == null)
                     return JsonError("任务不存在");
 
-                User userFrom = UserRepository.Get(from);
+                User userFrom = UserRepository.Get(eval.FromUserId);
                 if (userFrom == null)
                     return JsonError("评价人不存在");
 
-                User userTo = UserRepository.Get(to);
+                User userTo = UserRepository.Get(eval.ToUserId);
                 if (userTo == null)
                     return JsonError("被评价人不存在");
 
@@ -143,13 +141,13 @@ namespace Gms.Web.Mvc.Controllers
 
                 userEval.FromUser = userFrom;
                 userEval.ToUser = userTo;
-                userEval.Content = content;
-                userEval.Level = level;
+                userEval.Content = eval.Content;
+                userEval.Level = eval.Level;
                 userEval.CreateTime = DateTime.Now;
 
                 userEval = UserEvalRepository.SaveOrUpdate(userEval);
 
-                return JsonSuccess(userEval);
+                return JsonSuccess(UserEvalModel.From(userEval));
             }
             catch (Exception ex)
             {
@@ -157,13 +155,177 @@ namespace Gms.Web.Mvc.Controllers
             }
         }
 
-        public ActionResult EvalList(string name)
+        public ActionResult EvalList(UserEvalQuery query)
         {
-            var list = UserEvalRepository.GetAll(name);
-            return JsonSuccess(list);
+            var list = UserEvalRepository.GetList(query);
+            var data = list.Data.Select(c=>UserEvalModel.From(c));
+            return JsonSuccess(data);
         }
 
+        #endregion
 
+    }
+
+    public class UserModel
+    {
+        public UserModel(User user)
+        {
+            this.Id = user.Id;
+            this.LoginName = user.LoginName;
+            this.RealName = user.RealName;
+            this.NickName = user.NickName;
+            this.Gender = user.Gender.ToString();
+            this.Mobile = user.Mobile;
+            this.Level = user.Level;
+            this.Points = user.Points;
+            this.CallTimes = user.CallTimes;
+            this.RespondTimes = user.RespondTimes;
+            this.ReceiveTimes = user.ReceiveTimes;
+            this.Intro = user.Intro;
+            this.Note = user.Note;
+            this.CreateTime = user.CreateTime.ToJsonString();
+        }
+
+        public int Id { get; set; }
+
+        /// <summary>
+        /// 登录名
+        /// </summary>
+        public String LoginName { get; set; }
+
+        /// <summary>
+        /// 真实姓名
+        /// </summary>
+        public String RealName { get; set; }
+
+        /// <summary>
+        /// 昵称
+        /// </summary>
+        public String NickName { get; set; }
+
+        /// <summary>
+        /// 性别
+        /// </summary>
+        public String Gender { get; set; }
+
+        /// <summary>
+        /// 手机号码
+        /// </summary>
+        public String Mobile { get; set; }
+
+        /// <summary>
+        /// 等级
+        /// </summary>
+        public int Level { get; set; }
+
+        /// <summary>
+        /// 积分
+        /// </summary>
+        public int Points { get; set; }
+
+        /// <summary>
+        /// 发布任务次数
+        /// </summary>
+        public int CallTimes { get; set; }
+
+        /// <summary>
+        /// 响应任务次数
+        /// </summary>
+        public int RespondTimes { get; set; }
+
+        /// <summary>
+        /// 执行任务次数
+        /// </summary>
+        public int ReceiveTimes { get; set; }
+
+        /// <summary>
+        /// 自我介绍
+        /// </summary>
+        public String Intro { get; set; }
+        
+        /// <summary>
+        /// 备注
+        /// </summary>
+        public String Note { get; set; }
+
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        public String CreateTime { get; set; }
+
+        public static UserModel From(User user)
+        {
+            return new UserModel(user);
+        }
+    }
+
+    public class UserEvalModel
+    {
+        public UserEvalModel(UserEval userEval)
+        {
+            this.Id = userEval.Id;
+            if (userEval.Task != null)
+                this.TaskId = userEval.Task.Id;
+
+            if (userEval.ToUser != null)
+            {
+                this.ToUserId = userEval.ToUser.Id;
+                this.ToUserLoginName = userEval.ToUser.LoginName;
+            }
+            
+            this.UserRole = userEval.UserRole.ToString();
+
+            if (userEval.FromUser != null)
+            {
+                this.FromUserId = userEval.FromUser.Id;
+                this.FromUserLoginName = userEval.FromUser.LoginName;
+            }
+
+            this.Content = userEval.Content;
+            this.Level = userEval.Level;
+            this.CreateTime = userEval.CreateTime.ToJsonString();
+        }
+
+        public int Id { get; set; }
+
+        public int TaskId { get; set; }
+
+        /// <summary>
+        /// 被评价人
+        /// </summary>
+        public int ToUserId { get; set; }
+        public String ToUserLoginName { get; set; }
+
+        /// <summary>
+        /// 被评价人的任务角色
+        /// </summary>
+        public String UserRole { get; set; }
+
+        /// <summary>
+        /// 评价人
+        /// </summary>
+        public int FromUserId { get; set; }
+        public String FromUserLoginName { get; set; }
+
+        /// <summary>
+        /// 评价内容
+        /// </summary>
+        public String Content { get; set; }
+
+        /// <summary>
+        /// 评价星级
+        /// </summary>
+        public int Level { get; set; }
+
+        /// <summary>
+        /// 时间
+        /// </summary>
+        public String CreateTime { get; set; }
+
+        public static UserEvalModel From(UserEval userEval)
+        {
+            return new UserEvalModel(userEval);
+        }
 
     }
 }

@@ -8,64 +8,72 @@ import java.util.Date;
  */
 public class Task extends EntityBase {
 
-
     public int getUserId() {
-        return userId;
+        return UserId;
     }
 
     public void setUserId(int userId) {
-        this.userId = userId;
+        UserId = userId;
+    }
+
+    public String getUserLoginName() {
+        return UserLoginName;
+    }
+
+    public void setUserLoginName(String userLoginName) {
+        UserLoginName = userLoginName;
     }
 
     public String getContent() {
-        return content;
+        return Content;
     }
 
     public void setContent(String content) {
-        this.content = content;
+        Content = content;
     }
 
-    public int getStatus() {
-        return status;
+    public String getStatus() {
+        return Status;
     }
 
-    public void setStatus(int status) {
-        this.status = status;
+    public void setStatus(String status) {
+        Status = status;
     }
 
     public int getDuration() {
-        return duration;
+        return Duration;
     }
 
     public void setDuration(int duration) {
-        this.duration = duration;
+        Duration = duration;
     }
 
     public Date getCreateTime() {
-        return createTime;
+        return CreateTime;
     }
 
     public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+        CreateTime = createTime;
     }
 
     //发布人
-    private int userId;
+    private int UserId;
+    private String UserLoginName;
 
     //内容
-    private String content;
+    private String Content;
 
     //任务状态
     // 0：发布中
     // 1：关闭
     // 2：完成
-    private int status;
+    private String Status;
 
     //持续时间
-    private int duration;
+    private int Duration;
 
     //发布时间
-    private Date createTime;
+    private Date CreateTime;
 
 
 }
