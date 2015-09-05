@@ -75,5 +75,4 @@ public class Task extends EntityBase {
     //发布时间
     private Date CreateTime;
 
-
 }

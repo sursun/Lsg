@@ -32,6 +32,22 @@ public class TaskApply extends EntityBase {
         UserLoginName = userLoginName;
     }
 
+    public String getUserNickName() {
+        return UserNickName;
+    }
+
+    public void setUserNickName(String userNickName) {
+        UserNickName = userNickName;
+    }
+
+    public int getUserLevel() {
+        return UserLevel;
+    }
+
+    public void setUserLevel(int userLevel) {
+        UserLevel = userLevel;
+    }
+
     public String getAuditReason() {
         return AuditReason;
     }
@@ -70,6 +86,10 @@ public class TaskApply extends EntityBase {
     // 申请人
     private int UserId;
     private String UserLoginName;
+    //昵称
+    private String UserNickName;
+    //等级
+    private int UserLevel;
 
     // 审核理由
     private String AuditReason;

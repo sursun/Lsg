@@ -1,39 +1,22 @@
 package com.sursun.houck.lsg;
 
-import android.content.Intent;
-import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.sursun.houck.common.ToastUtil;
-
-
-public class WelcomeActivity extends ActionBarActivity {
+public class TaskViewActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_welcome);
-
-
-        new Handler().postDelayed(new Runnable() {
-
-            @Override
-            public void run() {//Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-                Intent intent = new Intent(WelcomeActivity.this, TaskWaitActivity.class);
-                startActivity(intent);
-                WelcomeActivity.this.finish();
-
-            }
-        }, 3000);
+        setContentView(R.layout.activity_task_view);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_welcome, menu);
+        getMenuInflater().inflate(R.menu.menu_task_view, menu);
         return true;
     }
 

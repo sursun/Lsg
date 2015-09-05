@@ -684,8 +684,8 @@ public class MapActivity extends Activity implements RadarUploadInfoCallback,Rad
     }
 
     //发布任务
-    public void onSendMessageClick(View v){
-        Intent intent = new Intent(MapActivity.this, SendMessageActivity.class);
+    public void onBtnCreateTaskClick(View v){
+        Intent intent = new Intent(MapActivity.this, TaskCreateActivity.class);
         startActivity(intent);
     }
 

@@ -73,11 +73,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="喊"
-            android:id="@+id/buttonSendMessage"
+            android:id="@+id/btnTaskCreate"
             android:layout_alignParentBottom="true"
             android:layout_centerHorizontal="true"
             android:textSize="@dimen/abc_text_size_large_material"
-            android:onClick="onSendMessageClick" />
+            android:onClick="onBtnCreateTaskClick"
+            android:nestedScrollingEnabled="true" />
 
     </RelativeLayout>
 

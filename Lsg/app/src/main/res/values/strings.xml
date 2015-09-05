@@ -13,6 +13,9 @@
     <string name="title_activity_main2">Main2Activity</string>
     <string name="title_activity_chatting">ChattingActivity</string>
     <string name="title_activity_register_user">RegisterUserActivity</string>
+    <string name="title_activity_task_create">TaskCreateActivity</string>
+    <string name="title_activity_task_wait">TaskWaitActivity</string>
+    <string name="title_activity_task_view">TaskViewActivity</string>
 
 
 </resources>

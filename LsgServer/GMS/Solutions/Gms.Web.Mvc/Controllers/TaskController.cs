@@ -19,7 +19,7 @@ namespace Gms.Web.Mvc.Controllers
         /// <param name="duration"></param>
         /// <returns></returns>
         [Transaction]
-        public ActionResult Add(string name, string content, int duration)
+        public ActionResult Create(string name, string content, int duration)
         {
             try
             {
@@ -32,7 +32,7 @@ namespace Gms.Web.Mvc.Controllers
                 }
 
                 task.Content = content;
-                task.Duration = duration;
+                task.Duration = duration;//int.Parse(duration);
                 task.Status = TaskStatus.发布中;
                 task.CreateTime = DateTime.Now;
 

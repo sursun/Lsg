@@ -61,11 +61,11 @@ public class LoginActivity extends ActionBarActivity {
 
                     LsgApplication.getInstance().mUser = user;
 
-//                    Intent intent = new Intent(LoginActivity.this, MapActivity.class);
-//
-//                    LoginActivity.this.startActivity(intent);
-//
-//                    LoginActivity.this.finish();
+                    Intent intent = new Intent(LoginActivity.this, TaskCreateActivity.class);
+
+                    LoginActivity.this.startActivity(intent);
+
+                    LoginActivity.this.finish();
                 }
             }
         });

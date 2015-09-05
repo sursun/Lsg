@@ -99,7 +99,7 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login"
+            android:label="用户登录"
             android:windowSoftInputMode="adjustResize|stateHidden" >
         </activity>
 
@@ -129,7 +129,19 @@
         </activity>
         <activity
             android:name=".RegisterUserActivity"
-            android:label="@string/title_activity_register_user" >
+            android:label="注册用户" >
+        </activity>
+        <activity
+            android:name=".TaskCreateActivity"
+            android:label="发布任务" >
+        </activity>
+        <activity
+            android:name=".TaskWaitActivity"
+            android:label="任务详情" >
+        </activity>
+        <activity
+            android:name=".TaskViewActivity"
+            android:label="@string/title_activity_task_view" >
         </activity>
     </application>
 
